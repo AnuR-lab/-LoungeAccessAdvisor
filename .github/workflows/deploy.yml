@@ -1,0 +1,113 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    
+    - name: Verify uv installation
+      run: uv --version
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    
+    - name: Deploy CloudFormation Stack
+      id: deploy-stack
+      run: |
+        # Check if stack exists
+        if aws cloudformation describe-stacks --stack-name streamlit-app-stack 2>&1 | grep -q "does not exist"; then
+          echo "Creating new stack..."
+          aws cloudformation create-stack \
+            --stack-name streamlit-app-stack \
+            --template-body file://cloudformation.yaml \
+            --capabilities CAPABILITY_IAM \
+            --parameters ParameterKey=InstanceType,ParameterValue=t2.micro
+          
+          echo "Waiting for stack creation..."
+          aws cloudformation wait stack-create-complete --stack-name streamlit-app-stack
+        else
+          echo "Updating existing stack..."
+          aws cloudformation update-stack \
+            --stack-name streamlit-app-stack \
+            --template-body file://cloudformation.yaml \
+            --capabilities CAPABILITY_IAM \
+            --parameters ParameterKey=InstanceType,ParameterValue=t2.micro || true
+          
+          echo "Waiting for stack update..."
+          aws cloudformation wait stack-update-complete --stack-name streamlit-app-stack || true
+        fi
+        
+        # Get EC2 instance IP
+        INSTANCE_IP=$(aws cloudformation describe-stacks \
+          --stack-name streamlit-app-stack \
+          --query 'Stacks[0].Outputs[?OutputKey==`PublicIP`].OutputValue' \
+          --output text)
+        
+        echo "INSTANCE_IP=$INSTANCE_IP" >> $GITHUB_OUTPUT
+        echo "Instance IP: $INSTANCE_IP"
+    
+    - name: Wait for instance to be ready
+      run: |
+        echo "Waiting 60 seconds for instance initialization..."
+        sleep 60
+    
+    - name: Deploy application to EC2
+      env:
+        INSTANCE_IP: ${{ steps.deploy-stack.outputs.INSTANCE_IP }}
+        SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+      run: |
+        # Save SSH key
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key.pem
+        chmod 600 ~/.ssh/deploy_key.pem
+        
+        # Add host to known_hosts
+        ssh-keyscan -H $INSTANCE_IP >> ~/.ssh/known_hosts
+        
+        # Deploy code
+        ssh -i ~/.ssh/deploy_key.pem ec2-user@$INSTANCE_IP << 'ENDSSH'
+          cd /home/ec2-user/app
+          git pull origin main
+          
+          # Install/update dependencies using uv
+          if command -v uv &> /dev/null; then
+            uv pip install -r pyproject.toml --system
+          else
+            # Fallback to pip if uv is not available
+            python3.11 -m pip install -e .
+          fi
+          
+          sudo systemctl restart streamlit
+          echo "Deployment complete!"
+        ENDSSH
+    
+    - name: Display Application URL
+      run: |
+        INSTANCE_IP="${{ steps.deploy-stack.outputs.INSTANCE_IP }}"
+        echo "================================"
+        echo "Deployment Successful!"
+        echo "Application URL: http://$INSTANCE_IP:8501"
+        echo "================================"
