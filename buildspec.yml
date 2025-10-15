@@ -1,0 +1,40 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+    commands:
+      - echo "Installing UV package manager..."
+      - curl -LsSf https://astral.sh/uv/install.sh | sh
+      - export PATH="$HOME/.cargo/bin:$PATH"
+      - uv --version
+      
+  pre_build:
+    commands:
+      - echo "Pre-build phase started on `date`"
+      - echo "Syncing dependencies with UV..."
+      - uv sync
+      
+  build:
+    commands:
+      - echo "Build phase started on `date`"
+      - echo "Running syntax checks..."
+      - uv run python -m py_compile src/*.py app.py
+      - echo "Build completed successfully"
+      
+  post_build:
+    commands:
+      - echo "Post-build phase started on `date`"
+      - echo "Creating deployment artifact..."
+      - echo "Build completed on `date`"
+
+artifacts:
+  files:
+    - '**/*'
+  name: AutoRescue-$(date +%Y%m%d-%H%M%S)
+
+cache:
+  paths:
+    - '.venv/**/*'
+    - '$HOME/.cargo/**/*'
