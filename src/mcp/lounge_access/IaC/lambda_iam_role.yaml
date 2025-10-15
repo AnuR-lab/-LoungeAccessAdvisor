@@ -22,22 +22,6 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - datazone:ListDomains
-                  - datazone:GetDomain
-                  - datazone:ListProjects
-                  - datazone:GetProject
-                  - datazone:ListAssets
-                  - datazone:GetAsset
-                  - datazone:GetAssetType
-                  - datazone:ListAssetRevisions
-                  - datazone:GetAssetRevision
-                  - datazone:SearchInventory
-                  - datazone:Search
-                  - datazone:GetDataSource
-                  - datazone:ListDataSources
-                Resource: "*"
-              - Effect: Allow
-                Action:
                   - glue:GetTable
                   - glue:GetTables
                   - glue:GetDatabase
