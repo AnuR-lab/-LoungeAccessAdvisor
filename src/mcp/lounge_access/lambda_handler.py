@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 
-from mcp_handler import tool_example_1, tool_example_2
+from mcp_handler import tool_example_1, tool_example_2, get_user
 from api_client import LoungeAccessClient
 
 
@@ -46,6 +46,16 @@ def lambda_handler(event, context):
             try:
                 result = tool_example_2(parameter_1, parameter_2, lounge_access_client)
                 return {"statusCode": 200, "body": json.dumps({"result": result})}
+            except ValueError as e:
+                return {"statusCode": 400, "body": json.dumps({"error": str(e)})}
+
+        case "get_user":
+            user_id = payload.get("user_id", None)
+            if not user_id:
+                return {"statusCode": 400, "body": json.dumps({"error": "Missing required parameter: user_id"})}
+            try:
+                result = get_user(user_id, lounge_access_client)
+                return {"statusCode": 200, "body": json.dumps({"result": result}, cls=DateTimeEncoder)}
             except ValueError as e:
                 return {"statusCode": 400, "body": json.dumps({"error": str(e)})}
 

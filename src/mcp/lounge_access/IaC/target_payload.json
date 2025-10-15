@@ -22,6 +22,20 @@
           },
           "required": ["parameter_1", "parameter_2"]
         }
+      },
+      {
+        "name": "get_user",
+        "description": "Retrieves user information including name, home airport, and memberships based on user ID.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "description": "The unique identifier for the user"
+            }
+          },
+          "required": ["user_id"]
+        }
       }
     ]
   }
