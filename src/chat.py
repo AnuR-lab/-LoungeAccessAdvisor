@@ -10,39 +10,14 @@ from strands import Agent, tool
 #from mcp_client import McpClient
 from strands.models import BedrockModel
 
+from src.mcp_client import McpClient
 from src.system_prompts import SystemPrompts
-
-
-@tool
-def handoff_to_user(message: str, breakout_of_loop: bool = False):
-    """
-    Custom handoff tool that works with Streamlit UI instead of console input.
-    This replaces the built-in handoff_to_user to prevent console prompts.
-
-    Args:
-        message: The message to show to the user
-        breakout_of_loop: Whether to break out of the conversation loop
-
-    Returns:
-        str: The user's response from the Streamlit UI
-    """
-
-    # Force set the session state
-    st.session_state.pending_handoff = {
-        "message": message,
-        "breakout": breakout_of_loop
-    }
-    st.session_state.handoff_triggered_this_run = True
-    append_user(message)
-
-    return f"Handoff initiated: {message}. Waiting for user response..."
-
 
 def get_agent(mcp_client):
     mcp_tools = mcp_client.list_tools_sync() if mcp_client else []
 
     agent_model = BedrockModel(
-        model_id="us.anthropic.claude-sonnet-4-20250514-v1:0",  # "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+        model_id="us.anthropic.claude-sonnet-4-20250514-v1:0",
         region_name="us-east-1",
     )
 
@@ -78,6 +53,29 @@ def init_state():
     if "handoff_triggered_this_run" not in st.session_state:
         st.session_state.handoff_triggered_this_run = False
 
+@tool
+def handoff_to_user(message: str, breakout_of_loop: bool = False):
+    """
+    Custom handoff tool that works with Streamlit UI instead of console input.
+    This replaces the built-in handoff_to_user to prevent console prompts.
+
+    Args:
+        message: The message to show to the user
+        breakout_of_loop: Whether to break out of the conversation loop
+
+    Returns:
+        str: The user's response from the Streamlit UI
+    """
+
+    # Force set the session state
+    st.session_state.pending_handoff = {
+        "message": message,
+        "breakout": breakout_of_loop
+    }
+    st.session_state.handoff_triggered_this_run = True
+    append_user(message)
+
+    return f"Handoff initiated: {message}. Waiting for user response..."
 
 # ----- UI Helpers -----
 def render_transcript():

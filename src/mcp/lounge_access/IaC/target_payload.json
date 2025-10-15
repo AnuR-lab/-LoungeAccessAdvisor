@@ -1,0 +1,28 @@
+{
+  "lambdaArn": "arn:aws:lambda:us-east-1:905418267822:function:atpco-lounge-access-mcp-us-east-1",
+  "toolSchema": {
+    "inlinePayload": [
+      {
+        "name": "tool_example_1",
+        "description": "An example tool that takes no input parameters.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
+        "name": "tool_example_2",
+        "description": "An example tool that takes two string parameters.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "parameter_1": {"type": "string"},
+            "parameter_2": {"type": "string"}
+          },
+          "required": ["parameter_1", "parameter_2"]
+        }
+      }
+    ]
+  }
+}
