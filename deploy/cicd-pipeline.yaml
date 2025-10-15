@@ -10,7 +10,7 @@ Parameters:
   GitHubRepo:
     Type: String
     Description: GitHub repository name
-    Default: AutoRescue
+    Default: LoungeAccessAdvisor
   
   GitHubBranch:
     Type: String
@@ -40,6 +40,68 @@ Conditions:
   HasKeyName: !Not [!Equals [!Ref EC2KeyName, '']]
 
 Resources:
+  # ========================================
+  # VPC and Networking (if no default VPC)
+  # ========================================
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-VPC'
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-IGW'
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-PublicSubnet'
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-RouteTable'
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref RouteTable
+
+  # ========================================
+  # S3 Bucket for Pipeline Artifacts
+  # ========================================
   # ========================================
   # S3 Bucket for Pipeline Artifacts
   # ========================================
@@ -193,6 +255,7 @@ Resources:
     Properties:
       GroupName: !Sub '${AWS::StackName}-SecurityGroup'
       GroupDescription: Security group for Streamlit application
+      VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -259,6 +322,7 @@ Resources:
       IamInstanceProfile: !Ref EC2InstanceProfile
       SecurityGroupIds:
         - !Ref EC2SecurityGroup
+      SubnetId: !Ref PublicSubnet
       KeyName: !If [HasKeyName, !Ref EC2KeyName, !Ref 'AWS::NoValue']
       UserData:
         Fn::Base64: !Sub |
@@ -424,6 +488,7 @@ Resources:
   CodeDeployRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub '${AWS::StackName}-CodeDeployRole'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -431,8 +496,32 @@ Resources:
             Principal:
               Service: codedeploy.amazonaws.com
             Action: 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSCodeDeployRole
+      Policies:
+        - PolicyName: CodeDeployPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'ec2:DescribeInstances'
+                  - 'ec2:DescribeInstanceStatus'
+                  - 'ec2:TerminateInstances'
+                  - 'ec2:CreateTags'
+                  - 'ec2:DescribeTags'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'autoscaling:CompleteLifecycleAction'
+                  - 'autoscaling:DeleteLifecycleHook'
+                  - 'autoscaling:DescribeAutoScalingGroups'
+                  - 'autoscaling:DescribeLifecycleHooks'
+                  - 'autoscaling:PutLifecycleHook'
+                  - 'autoscaling:RecordLifecycleActionHeartbeat'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'tag:GetResources'
+                Resource: '*'
 
   CodeDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
