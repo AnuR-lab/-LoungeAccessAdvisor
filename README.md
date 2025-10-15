@@ -4,6 +4,14 @@
 
 Lounge Access Advisor is an intelligent chatbot that helps travelers discover airport lounge access information, check credit card benefits, and get personalized travel recommendations. Built with Claude Sonnet 4 and featuring a modern Streamlit interface.
 
+## 🎯 Project Goals
+
+- Help travelers quickly determine airport lounge eligibility based on flight details, loyalty status, and credit card memberships.
+- Provide a delightful chat experience powered by Claude Sonnet 4 with real‑time streaming and reliable tool use.
+- Orchestrate calls to external services via Model Context Protocol (MCP) tools and a lightweight API client layer.
+- Offer a secure, session‑based web experience (Streamlit) with authentication and chat history persistence.
+- Deliver deployable building blocks for AWS (Lambda + IAM + Gateway), including simple example tools and tests.
+
 ## 🌟 Features
 
 - **Intelligent Chatbot** - Conversational AI powered by Claude Sonnet 4
