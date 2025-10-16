@@ -11,7 +11,7 @@ Lounge Access Advisor is an intelligent chatbot that helps travelers discover ai
 - Orchestrate calls to external services via Model Context Protocol (MCP) tools and a lightweight API client layer.
 - Offer a secure, session‑based web experience (Streamlit) with authentication and chat history persistence.
 - Deliver deployable building blocks for AWS (Lambda + IAM + Gateway), including simple example tools and tests.
-
+ 
 ## 🌟 Features
 
 - **Intelligent Chatbot** - Conversational AI powered by Claude Sonnet 4
