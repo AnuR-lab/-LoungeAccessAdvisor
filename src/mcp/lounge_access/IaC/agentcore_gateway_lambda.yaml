@@ -45,6 +45,11 @@ Resources:
       Handler: lambda_handler.lambda_handler
       Timeout: 300
       MemorySize: 512
+      Code:
+        ZipFile: |
+          # lambda_handler.py (inline)
+          def lambda_handler(event, context):
+              return {"statusCode": 200, "body": "ok"}
 
 
 Outputs:
