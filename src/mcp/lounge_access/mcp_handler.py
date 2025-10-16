@@ -53,3 +53,41 @@ def get_user(user_id, api_client):
         "error": "User not found"
     }
 
+
+def get_lounges_with_access_rules(airport, api_client):
+    """
+    Retrieves lounges for a given airport with detailed access rules.
+    
+    Args:
+        airport (str): The airport code (e.g., 'LAX', 'JFK')
+        api_client: The API client instance for data retrieval
+        
+    Returns:
+        dict: Airport lounges with access rules and detailed information
+    """
+    try:
+        lounges_data = api_client.get_lounges_by_airport(airport)
+        
+        if lounges_data:
+            return {
+                "airport": airport,
+                "lounges": lounges_data.get("lounges", []),
+                "total_lounges": len(lounges_data.get("lounges", [])),
+                "status": "success"
+            }
+        
+        return {
+            "airport": airport,
+            "lounges": [],
+            "total_lounges": 0,
+            "status": "no_lounges_found"
+        }
+        
+    except Exception as e:
+        return {
+            "airport": airport,
+            "lounges": [],
+            "total_lounges": 0,
+            "status": "error",
+            "error": str(e)
+        }
