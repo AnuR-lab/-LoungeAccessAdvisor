@@ -3,15 +3,6 @@ set -e
 
 echo "=== Before Install Script ==="
 
-# Clean existing app directory to avoid file conflicts
-if [ -d "/home/ec2-user/app" ]; then
-    echo "Cleaning existing app directory..."
-    rm -rf /home/ec2-user/app/*
-    rm -rf /home/ec2-user/app/.venv
-    rm -rf /home/ec2-user/app/.git
-    echo "✅ Directory cleaned"
-fi
-
 # Ensure UV is installed for ec2-user
 if ! su - ec2-user -c 'command -v uv' &> /dev/null; then
     echo "Installing UV for ec2-user..."
