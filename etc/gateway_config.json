@@ -1,0 +1,13 @@
+{
+  "gateway_url": "https://lounge-access-mcp-server-xfpnr3goqw.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp",
+  "gateway_id": "lounge-access-mcp-server-xfpnr3goqw",
+  "region": "us-east-1",
+  "client_info": {
+    "client_id": "35ik1sng2lufmvp5iq65d2e0kt",
+    "client_secret": "1gkp1hjprck6s96r9p36qs4di2b9la2na0rgerk8bbmj55e4g3h9",
+    "user_pool_id": "us-east-1_NLLAlb8sE",
+    "token_endpoint": "https://agentcore-d806c888.auth.us-east-1.amazoncognito.com/oauth2/token",
+    "scope": "LoungeAccessMCPServerAuth/invoke",
+    "domain_prefix": "agentcore-d806c888"
+  }
+}
