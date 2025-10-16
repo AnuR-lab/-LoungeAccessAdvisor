@@ -1,3 +1,6 @@
+import json
+import os
+
 import requests
 from mcp.client.streamable_http import streamablehttp_client
 from strands.tools.mcp import MCPClient
@@ -9,21 +12,46 @@ class McpClient:
     This class provides methods to authenticate with the AgentCore Gateway and retrieve an MCP client instance.
     """
 
-    def __init__(self, mcp_gateway_url, client_id=None, client_secret=None, token_url=None):
+    def __init__(self, config_file="./etc/gateway_config.json"):
         """
         Initialize the AgentCoreGatewayClient.
 
         Args:
             mcp_gateway_url: URL of the Agent Core Gateway
             client_id: OAuth client ID (defaults to class constant if None)
-            client_secret: OAuth client secret (defaults to class constant if None)
+            client_secret: OAuth client secret (defaults to
+            class constant if None)
             token_url: OAuth token URL (defaults to class constant if None)
         """
-        self.mcp_url = mcp_gateway_url
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.token_url = token_url
+
+        self.mcp_gateway_config = self._get_config(config_file)
+
+        if self.mcp_gateway_config:
+            self.mcp_url = self.mcp_gateway_config.get("gateway_url", None)
+            self.client_id = self.mcp_gateway_config["client_info"]["client_id"]
+            self.client_secret = self.mcp_gateway_config["client_info"]["client_secret"]
+            self.token_url = self.mcp_gateway_config["client_info"]["token_endpoint"]
+
         self.access_token = None
+
+
+    def _get_config(self, config_file="./etc/gateway_config.json"):
+        """
+        Load configuration from a JSON file.
+        Args:
+            config_file: Path to the configuration file
+        Returns:
+            dict: Configuration data
+        """
+
+        mcp_gateway_config = None
+        try:
+            with open(config_file, "r") as f:
+                mcp_gateway_config = json.load(f)
+        except FileNotFoundError:
+            print("❌ Error: gateway_config.json not found!")
+
+        return mcp_gateway_config
 
 
     def _fetch_access_token(self):

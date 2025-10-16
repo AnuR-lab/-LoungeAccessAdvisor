@@ -3,6 +3,8 @@ Main chat interface with Streamlit, including custom handoff_to_user tool that w
 """
 
 import asyncio
+import json
+
 import streamlit as st
 
 from strands import Agent, tool
@@ -10,7 +12,7 @@ from strands import Agent, tool
 #from mcp_client import McpClient
 from strands.models import BedrockModel
 
-from src.mcp_client import McpClient
+from src.mcp_client import McpClient as LoungeAccesshMcpClient
 from src.system_prompts import SystemPrompts
 
 def get_agent(mcp_client):
@@ -33,14 +35,7 @@ def get_agent(mcp_client):
 def init_state():
     if "agent" not in st.session_state:
 
-        mcp_client = None
-        # mcp_client = McpClient(
-        #     mcp_gateway_url="https://gateway-quick-start-0e31fb-asclyv6trk.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp",
-        #     client_id="37m4g3smkv8gvmr63142i1fqge",
-        #     client_secret="d623h492ngp5up91c6f07699h8rsi8bvppn3cou7vbfv1edvvpo",
-        #     token_url="https://my-domain-3y2hxkiv.auth.us-east-1.amazoncognito.com/oauth2/token"
-        # ).get_mcp_client()
-
+        mcp_client = LoungeAccesshMcpClient().get_mcp_client()
 
         # Keep a single Agent instance so conversation history persists
         st.session_state.mcp_context = mcp_client.__enter__() if mcp_client else None
