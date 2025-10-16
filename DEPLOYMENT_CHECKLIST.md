@@ -33,17 +33,41 @@ python scripts/add_gateway_targets.py \
 
 ### Step 2: Deploy Enhanced Lambda Functions
 ```bash
-# Deploy updated Lambda functions with flight integration
+# Option A: Use pre-built deployment package
+aws lambda create-function \
+  --function-name loungeaccessadvisor-enhanced \
+  --runtime python3.12 \
+  --role arn:aws:iam::ACCOUNT:role/lambda-execution-role \
+  --handler lambda_handler.lambda_handler \
+  --zip-file fileb://loungeaccessadvisor-lambda.zip \
+  --timeout 30 \
+  --memory-size 256
+
+# Option B: Use SAM template (if available)
 sam deploy --template-file template-sam.yaml \
   --stack-name loungeaccessadvisor-enhanced \
   --capabilities CAPABILITY_IAM
 ```
 
-### Step 3: Update MCP Handler
+### Step 3: Verify Lambda Handler Functions
 ```bash
-# Ensure MCP handler functions are deployed
-# Functions: get_flight_aware_lounge_recommendations, analyze_layover_lounge_strategy
+# Test Lambda function deployment
+aws lambda invoke \
+  --function-name loungeaccessadvisor-enhanced \
+  --payload '{"user_id": "test"}' \
+  --cli-binary-format raw-in-base64-out \
+  response.json
+
+# Check CloudWatch logs
+aws logs describe-log-groups --log-group-name-prefix /aws/lambda/loungeaccessadvisor
 ```
+
+**Supported Tools in Lambda Handler:**
+- ✅ `getUser` - User profile and membership lookup
+- ✅ `getLoungesWithAccessRules` - Basic airport lounge search  
+- ✅ `getFlightLoungeRecs` - Flight-aware lounge recommendations
+- ✅ `analyzeLayoverStrategy` - Multi-flight layover analysis
+- ✅ `searchFlightsOptimized` - Lounge-optimized flight search
 
 ### Step 4: Test Flight Integration
 ```bash
