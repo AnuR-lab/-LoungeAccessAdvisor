@@ -12,19 +12,16 @@ else
     echo "ℹ️  Streamlit service is not running"
 fi
 
-# Clean existing app directory to avoid file conflicts
+# Completely remove and recreate app directory
 echo "Cleaning app directory for fresh deployment..."
 if [ -d "/home/ec2-user/app" ]; then
-    cd /home/ec2-user
-    rm -rf /home/ec2-user/app/*
-    rm -rf /home/ec2-user/app/.venv
-    rm -rf /home/ec2-user/app/.git
-    rm -rf /home/ec2-user/app/.*
-    echo "✅ App directory cleaned"
+    rm -rf /home/ec2-user/app
+    echo "✅ App directory removed"
 fi
 
 # Recreate empty directory
 mkdir -p /home/ec2-user/app
 chown -R ec2-user:ec2-user /home/ec2-user/app
+echo "✅ Fresh app directory created"
 
 echo "=== Stop Application Complete ==="
