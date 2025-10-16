@@ -1,0 +1,23 @@
+{
+  "lambdaArn": "arn:aws:lambda:us-east-1:905418267822:function:atpco-lounge-access-mcp-us-east-1",
+  "toolSchema": {
+    "inlinePayload": [
+      {
+        "name": "search_lounges",
+        "description": "Search for lounges for a specific airport",
+        "inputSchema": {
+          "type": "object",
+          "required": [
+            "airport"
+          ],
+          "properties": {
+            "airport": {
+              "type": "string",
+              "description": "Three-letter IATA airport code for departure (e.g., IAD)"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

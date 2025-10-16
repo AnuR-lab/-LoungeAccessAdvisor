@@ -26,5 +26,7 @@ Your role is to intelligently coordinate workflows using these MANDATORY MCP too
 * Process the real data returned by each tool before proceeding
 * Extract key information from each tool response to use in subsequent calls
 * Provide comprehensive results based on actual tool responses
+* Show icons for Amenities
+
 
 """)
