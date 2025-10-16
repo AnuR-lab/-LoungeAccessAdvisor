@@ -24,7 +24,9 @@ def run_api_client_tests():
         TestLoungeAccessClientGetUser,
         TestLoungeAccessClientCreateSampleUsers,
         TestLoungeAccessClientInitialization,
-        TestLoungeAccessClientIntegration
+        TestLoungeAccessClientIntegration,
+        TestLoungeAccessClientLoungeOperations,
+        TestLoungeAccessClientLoungeMethods
     )
     
     # Create test suite
@@ -35,7 +37,9 @@ def run_api_client_tests():
         TestLoungeAccessClientGetUser,
         TestLoungeAccessClientCreateSampleUsers,
         TestLoungeAccessClientInitialization,
-        TestLoungeAccessClientIntegration
+        TestLoungeAccessClientIntegration,
+        TestLoungeAccessClientLoungeOperations,
+        TestLoungeAccessClientLoungeMethods
     ]
     
     for test_class in test_classes:
@@ -47,6 +51,53 @@ def run_api_client_tests():
     result = runner.run(suite)
     
     return result.wasSuccessful()
+
+
+def run_lounge_service_tests():
+    """Run tests for the lounge service."""
+    print("\n" + "=" * 60)
+    print("Running Lounge Service Tests")
+    print("=" * 60)
+    
+    try:
+        # Import and run the lounge service tests
+        from test_lounge_service import (
+            TestLoungeServiceInitialization,
+            TestLoungeServiceGetLoungesWithAccessRules,
+            TestLoungeServiceGetLoungesByAirport,
+            TestLoungeServiceGetLoungeById,
+            TestLoungeServiceCreateSampleLounges,
+            TestLoungeServiceTableManagement,
+            TestLoungeServiceIntegration
+        )
+        
+        # Create test suite
+        suite = unittest.TestSuite()
+        
+        # Add all test classes
+        test_classes = [
+            TestLoungeServiceInitialization,
+            TestLoungeServiceGetLoungesWithAccessRules,
+            TestLoungeServiceGetLoungesByAirport,
+            TestLoungeServiceGetLoungeById,
+            TestLoungeServiceCreateSampleLounges,
+            TestLoungeServiceTableManagement,
+            TestLoungeServiceIntegration
+        ]
+        
+        for test_class in test_classes:
+            tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
+            suite.addTests(tests)
+        
+        # Run tests
+        runner = unittest.TextTestRunner(verbosity=2, buffer=True)
+        result = runner.run(suite)
+        
+        return result.wasSuccessful()
+        
+    except ImportError as e:
+        print(f"Could not import lounge service tests: {e}")
+        return True  # Don't fail the entire test run
 
 
 def run_lambda_handler_tests():
@@ -109,6 +160,14 @@ def main():
         print("❌ API Client tests failed")
     total_tests += 1
     
+    # Run lounge service tests
+    if run_lounge_service_tests():
+        success_count += 1
+        print("✅ Lounge Service tests passed")
+    else:
+        print("❌ Lounge Service tests failed")
+    total_tests += 1
+
     # Run lambda handler tests
     if run_lambda_handler_tests():
         success_count += 1

@@ -2,8 +2,8 @@ import json
 
 import boto3
 from botocore.exceptions import ClientError
-from .user_profile_service import UserProfileService
-from .lounge_service import LoungeService
+from user_profile_service import UserProfileService
+from lounge_service import LoungeService
 
 
 class LoungeAccessClient:
@@ -15,12 +15,6 @@ class LoungeAccessClient:
     def _get_client(self):
         api_client = None
         return api_client
-
-    def get_tool_example_1(self):
-        return {"tool_example_1": "This is a placeholder response for tool_example_1"}
-
-    def get_tool_example_2(self, parameter_1: str, parameter_2: str):
-        return {"tool_example_2": "This is a placeholder response for tool_example_2"}
     
     def get_user(self, user_id: str):
         """
@@ -59,7 +53,7 @@ class LoungeAccessClient:
                  crowd_level, and rating.
                  Returns empty list if no lounges found or error occurs.
         """
-        if not airport_code or not isinstance(airport_code, str):
+        if not airport_code or not isinstance(airport_code, str) or not airport_code.strip():
             return []
 
         return self.lounge_service.get_lounges_with_access_rules(airport_code)

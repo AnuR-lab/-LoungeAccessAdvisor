@@ -34,20 +34,6 @@ def lambda_handler(event, context):
     print(f"tool: {tool}, payload: {payload}")
 
     match tool:
-        case "tool_example_1":
-            result = tool_example_1(lounge_access_client)
-            return {"statusCode": 200, "body": json.dumps({"result": result})}
-
-        case "tool_example_2":
-            parameter_1 = payload.get("parameter_1", None)
-            parameter_2 = payload.get("parameter_2", None)
-            if not parameter_1 and not parameter_2:
-                return {"statusCode": 400, "body": json.dumps({"error": "Missing input parameters"})}
-            try:
-                result = tool_example_2(parameter_1, parameter_2, lounge_access_client)
-                return {"statusCode": 200, "body": json.dumps({"result": result})}
-            except ValueError as e:
-                return {"statusCode": 400, "body": json.dumps({"error": str(e)})}
         case "search_lounges":
             airport = payload.get("airport", None)
             if not airport:

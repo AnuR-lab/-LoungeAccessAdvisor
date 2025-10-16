@@ -4,47 +4,61 @@ This directory contains comprehensive unit tests for the `get_user` method and o
 
 ## Test Files
 
-- **`test_api_client.py`** - Unit tests for the API client methods
+- **`test_api_client.py`** - Comprehensive unit tests for API client methods (users + lounges)
+- **`test_lounge_service.py`** - Unit tests for the LoungeService class
+- **`test_lounge_functionality.py`** - Simplified business logic tests (no AWS dependencies)
 - **`test_lambda_handler.py`** - Unit tests for Lambda handler (existing)
-- **`run_tests.py`** - Test runner script
+- **`run_tests.py`** - Test runner script for all tests
 - **`pytest.ini`** - Pytest configuration
 
 ## Running Tests
 
-### Option 1: Using the test runner script
+### Option 1: Quick Business Logic Tests (Recommended for Development)
 ```bash
 cd src/mcp/lounge_access
-python run_tests.py
+python3 test_lounge_functionality.py
 ```
+*This runs comprehensive tests without requiring AWS credentials or DynamoDB setup.*
 
-### Option 2: Using unittest directly
+### Option 2: Using the full test runner script
 ```bash
 cd src/mcp/lounge_access
-python -m unittest test_api_client.py -v
+python3 run_tests.py
+```
+*Note: Requires AWS credentials to be configured for DynamoDB tests.*
+
+### Option 3: Using unittest directly
+```bash
+cd src/mcp/lounge_access
+python3 -m unittest test_api_client.py -v
+python3 -m unittest test_lounge_service.py -v
 ```
 
-### Option 3: Using pytest (if installed)
+### Option 4: Using pytest (if installed)
 ```bash
 cd src/mcp/lounge_access
 pip install pytest
 pytest test_api_client.py -v
+pytest test_lounge_service.py -v
 ```
 
-### Option 4: Running specific test classes
+### Option 5: Running specific test classes
 ```bash
-python -m unittest test_api_client.TestLoungeAccessClientGetUser -v
+python3 -m unittest test_api_client.TestLoungeAccessClientLoungeOperations -v
+python3 -m unittest test_lounge_service.TestLoungeServiceGetLoungesByAirport -v
 ```
 
 ## Test Coverage
 
-The tests cover the following scenarios for `get_user`:
+The tests cover the following scenarios:
 
-### ✅ **Success Cases:**
+### 👤 **User Profile Tests (`get_user`):**
+#### ✅ **Success Cases:**
 - Normal user retrieval with valid data
 - User retrieval with partial data
 - Multiple sequential calls
 
-### ❌ **Error Cases:**
+#### ❌ **Error Cases:**
 - User not found (returns None)
 - Empty string user_id
 - None as user_id parameter
@@ -53,10 +67,33 @@ The tests cover the following scenarios for `get_user`:
 - Very long user_id
 - Service exceptions
 
-### 🔧 **Integration Cases:**
+### 🏨 **Lounge Operations Tests:**
+#### ✅ **Success Cases:**
+- `get_lounges_by_airport` - Retrieve all lounges at an airport
+- `get_lounge_by_id` - Get specific lounge details
+- `search_lounges_by_access_provider` - Filter by access provider
+- `get_lounges_with_amenity` - Filter by amenities
+- `create_sample_lounges` - Create test data
+
+#### ❌ **Error Cases:**
+- Empty/None airport codes and parameters
+- Invalid data types (numbers, lists, etc.)
+- Whitespace-only inputs
+- Missing required fields in data
+- Service exceptions
+
+#### � **Search & Filter Tests:**
+- Case-insensitive searches
+- Partial string matching
+- Access provider filtering
+- Amenity filtering
+- No matches handling
+
+### �🔧 **Integration Cases:**
 - Service delegation
 - Method integration
 - Initialization testing
+- Multiple operation workflows
 
 ## Test Structure
 
