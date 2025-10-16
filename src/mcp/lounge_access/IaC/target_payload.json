@@ -3,7 +3,7 @@
   "toolSchema": {
     "inlinePayload": [
       {
-        "name": "searchLounges",
+        "name": "search_lounges",
         "description": "Search for lounges for a specific airport",
         "inputSchema": {
           "type": "object",
