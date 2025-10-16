@@ -274,5 +274,4 @@ This project is part of the AWS Hackathon initiative. See individual file header
 - Strands team for the agent orchestration framework
 
 ---
-
 **Built with ❤️ for travelers worldwide**
