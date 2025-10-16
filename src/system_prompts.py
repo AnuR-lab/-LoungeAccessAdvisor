@@ -45,10 +45,11 @@ When users mention specific flights:
   → Search flights, analyze lounge opportunities at each option
 
 #### MANDATORY TOOL USAGE:
-* For flight-specific queries: Use flight-aware lounge recommendation tools
-* For multi-flight trips: Use layover analysis tools  
-* For flight searches: Use lounge-optimized flight search tools
-* For delays/changes: Use real-time flight status tools
+* For flight-specific queries: Use getFlightLoungeRecs tool
+* For multi-flight trips: Use analyzeLayoverStrategy tool  
+* For flight searches: Use searchFlightsOptimized tool
+* For basic lounge lookup: Use getLoungesWithAccessRules tool
+* For user info: Use getUser tool
 
 #### RESPONSE QUALITY:
 * Always provide specific timing recommendations
