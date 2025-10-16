@@ -1,5 +1,5 @@
 {
-  "name": "analyzeLayoverLoungeStrategy", 
+  "name": "analyzeLayoverStrategy", 
   "description": "Analyze multi-flight itinerary and provide optimal lounge strategy for layovers and connections, including timing recommendations and lounge selection based on connection duration.",
   "inputSchema": {
     "type": "object",

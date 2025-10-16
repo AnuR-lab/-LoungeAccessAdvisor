@@ -1,5 +1,5 @@
 {
-  "name": "getFlightAwareLoungeRecommendations",
+  "name": "getFlightLoungeRecs",
   "description": "Get intelligent lounge recommendations based on specific flight information, including real-time flight status, terminal locations, and optimal timing for lounge visits.",
   "inputSchema": {
     "type": "object",

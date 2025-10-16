@@ -1,5 +1,5 @@
 {
-  "name": "searchFlightsWithLoungeOptimization",
+  "name": "searchFlightsOptimized",
   "description": "Search for flights between airports with lounge access optimization, ranking results by lounge availability and access opportunities for the user's memberships.",
   "inputSchema": {
     "type": "object", 
