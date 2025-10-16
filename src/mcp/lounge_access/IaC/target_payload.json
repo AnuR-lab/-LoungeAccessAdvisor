@@ -3,38 +3,19 @@
   "toolSchema": {
     "inlinePayload": [
       {
-        "name": "tool_example_1",
-        "description": "An example tool that takes no input parameters.",
+        "name": "searchLounges",
+        "description": "Search for lounges for a specific airport",
         "inputSchema": {
           "type": "object",
-          "properties": {},
-          "required": []
-        }
-      },
-      {
-        "name": "tool_example_2",
-        "description": "An example tool that takes two string parameters.",
-        "inputSchema": {
-          "type": "object",
+          "required": [
+            "airport_code"
+          ],
           "properties": {
-            "parameter_1": {"type": "string"},
-            "parameter_2": {"type": "string"}
-          },
-          "required": ["parameter_1", "parameter_2"]
-        }
-      },
-      {
-        "name": "get_user",
-        "description": "Retrieves user information including name, home airport, and memberships based on user ID.",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "user_id": {
+            "airport_code": {
               "type": "string",
-              "description": "The unique identifier for the user"
+              "description": "Three-letter IATA airport code for departure (e.g., IAD)"
             }
-          },
-          "required": ["user_id"]
+          }
         }
       }
     ]
