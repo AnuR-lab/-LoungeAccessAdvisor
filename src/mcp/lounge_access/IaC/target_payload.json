@@ -8,10 +8,10 @@
         "inputSchema": {
           "type": "object",
           "required": [
-            "airport_code"
+            "airport"
           ],
           "properties": {
-            "airport_code": {
+            "airport": {
               "type": "string",
               "description": "Three-letter IATA airport code for departure (e.g., IAD)"
             }
