@@ -32,6 +32,7 @@ def create_lambda_package():
     
     # Files to include in Lambda package
     files_to_copy = [
+        "__init__.py",
         "lambda_handler.py",
         "mcp_handler.py", 
         "api_client.py",

@@ -5,12 +5,7 @@ Enhanced with flight information for context-aware lounge recommendations.
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 
-# Import FlightService with Lambda compatibility
-try:
-    from flight_service import FlightService
-except ImportError:
-    import flight_service
-    FlightService = flight_service.FlightService
+# No direct FlightService import needed - use api_client for flight data
 
 def get_user(user_id, api_client):
     """
@@ -102,10 +97,8 @@ def get_flight_aware_lounge_recommendations(
         dict: Flight-aware lounge recommendations with timing and logistics
     """
     try:
-        flight_service = FlightService()
-        
-        # Get real-time flight information
-        flight_info = flight_service.get_flight_status(flight_number, departure_date)
+        # Get real-time flight information through api_client
+        flight_info = api_client.flight_service.get_flight_status(flight_number, departure_date)
         
         if flight_info.get("status") != "found":
             return {
@@ -270,19 +263,18 @@ def analyze_layover_lounge_strategy(
         dict: Comprehensive layover lounge strategy
     """
     try:
-        flight_service = FlightService()
         layover_strategies = []
         
         for i in range(len(connecting_flights) - 1):
             current_flight = connecting_flights[i]
             next_flight = connecting_flights[i + 1]
             
-            # Get flight information
-            current_info = flight_service.get_flight_status(
+            # Get flight information through api_client
+            current_info = api_client.flight_service.get_flight_status(
                 current_flight["flight_number"], 
                 current_flight["departure_date"]
             )
-            next_info = flight_service.get_flight_status(
+            next_info = api_client.flight_service.get_flight_status(
                 next_flight["flight_number"],
                 next_flight["departure_date"]
             )
