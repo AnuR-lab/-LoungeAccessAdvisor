@@ -42,29 +42,26 @@ Resources:
         - Key: Name
           Value: StreamlitSecurityGroup
 
-  # IAM Role for EC2
-  StreamlitEC2Role:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ec2.amazonaws.com
-            Action: 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
-      Tags:
-        - Key: Name
-          Value: StreamlitEC2Role
+  DynamoDBStackName:
+    Description: Name of the DynamoDB infrastructure stack
+    Type: String
+    Default: loungeaccess-dynamodb-dev
 
-  # Instance Profile
+  Environment:
+    Description: Environment name (dev, staging, prod)
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+
+  # Instance Profile (using role from DynamoDB stack)
   StreamlitInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
-        - !Ref StreamlitEC2Role
+        - Fn::ImportValue: !Sub '${DynamoDBStackName}-EC2Role'
 
   # EC2 Instance
   StreamlitEC2Instance:
@@ -101,6 +98,24 @@ Resources:
           # Install dependencies using uv
           /root/.cargo/bin/uv pip install -r pyproject.toml --system
           
+          # Get DynamoDB table name from stack outputs
+          DYNAMODB_TABLE_NAME=$(aws cloudformation describe-stacks \
+            --stack-name ${DynamoDBStackName} \
+            --query 'Stacks[0].Outputs[?OutputKey==`UserProfileTableName`].OutputValue' \
+            --output text --region ${AWS::Region})
+          
+          # Set environment variables
+          export DYNAMODB_TABLE_NAME="$DYNAMODB_TABLE_NAME"
+          export AWS_DEFAULT_REGION="${AWS::Region}"
+          export ENVIRONMENT="${Environment}"
+          
+          # Create environment file for the application
+          cat > /home/ec2-user/app/.env <<EOF
+          DYNAMODB_TABLE_NAME=$DYNAMODB_TABLE_NAME
+          AWS_DEFAULT_REGION=${AWS::Region}
+          ENVIRONMENT=${Environment}
+          EOF
+          
           # Create systemd service
           cat > /etc/systemd/system/streamlit.service <<EOF
           [Unit]
@@ -112,6 +127,7 @@ Resources:
           User=ec2-user
           WorkingDirectory=/home/ec2-user/app
           Environment="PATH=/root/.cargo/bin:/usr/local/bin:/usr/bin:/bin"
+          EnvironmentFile=/home/ec2-user/app/.env
           ExecStart=/usr/local/bin/streamlit run app.py --server.port 8501 --server.address 0.0.0.0
           Restart=always
           RestartSec=10

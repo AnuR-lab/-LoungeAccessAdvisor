@@ -1,6 +1,7 @@
 import streamlit as st
 from src.login import show_login_page
 from src.home import show_home_page
+from src.config import get_config
 
 # Page configuration
 st.set_page_config(

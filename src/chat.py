@@ -3,22 +3,29 @@ Main chat interface with Streamlit, including custom handoff_to_user tool that w
 """
 
 import asyncio
+import os
 import streamlit as st
+from dotenv import load_dotenv
 
 from strands import Agent, tool
-
-#from mcp_client import McpClient
 from strands.models import BedrockModel
 
 from src.mcp_client import McpClient
 from src.system_prompts import SystemPrompts
 
+# Load environment variables
+load_dotenv()
+
 def get_agent(mcp_client):
     mcp_tools = mcp_client.list_tools_sync() if mcp_client else []
 
+    # Get configuration from environment
+    model_id = os.getenv('BEDROCK_MODEL_ID', 'us.anthropic.claude-sonnet-4-20250514-v1:0')
+    region_name = os.getenv('BEDROCK_REGION', os.getenv('AWS_DEFAULT_REGION', 'us-east-1'))
+
     agent_model = BedrockModel(
-        model_id="us.anthropic.claude-sonnet-4-20250514-v1:0",
-        region_name="us-east-1",
+        model_id=model_id,
+        region_name=region_name,
     )
 
     agent = Agent(
@@ -33,13 +40,27 @@ def get_agent(mcp_client):
 def init_state():
     if "agent" not in st.session_state:
 
+        # Get MCP configuration from environment
+        mcp_gateway_url = os.getenv('MCP_GATEWAY_URL')
+        client_id = os.getenv('COGNITO_CLIENT_ID')
+        client_secret = os.getenv('COGNITO_CLIENT_SECRET')
+        token_url = os.getenv('COGNITO_TOKEN_URL')
+        
         mcp_client = None
-        # mcp_client = McpClient(
-        #     mcp_gateway_url="https://gateway-quick-start-0e31fb-asclyv6trk.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp",
-        #     client_id="37m4g3smkv8gvmr63142i1fqge",
-        #     client_secret="d623h492ngp5up91c6f07699h8rsi8bvppn3cou7vbfv1edvvpo",
-        #     token_url="https://my-domain-3y2hxkiv.auth.us-east-1.amazoncognito.com/oauth2/token"
-        # ).get_mcp_client()
+        if all([mcp_gateway_url, client_id, client_secret, token_url]):
+            try:
+                mcp_client = McpClient(
+                    mcp_gateway_url=mcp_gateway_url,
+                    client_id=client_id,
+                    client_secret=client_secret,
+                    token_url=token_url
+                ).get_mcp_client()
+                print("MCP Client initialized successfully")
+            except Exception as e:
+                print(f"Failed to initialize MCP Client: {e}")
+                mcp_client = None
+        else:
+            print("MCP configuration incomplete, running without MCP tools")
 
 
         # Keep a single Agent instance so conversation history persists

@@ -1,37 +1,81 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: IAM Role for ATPCO Lounge Access Lambda Function
+Description: Lambda Function and IAM Role for LoungeAccessAdvisor MCP Tools
+
+Parameters:
+  Environment:
+    Type: String
+    Description: Environment name (dev, staging, prod)
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+  
+  DynamoDBStackName:
+    Type: String
+    Description: Name of the DynamoDB infrastructure stack
+    Default: loungeaccess-dynamodb
 
 Resources:
-  AtpcoLoungeAccessLambdaRole:
-    Type: AWS::IAM::Role
+  # Lambda Function
+  LoungeAccessLambdaFunction:
+    Type: AWS::Lambda::Function
     Properties:
-      RoleName: atpco-lounge-access-mcp-lambda-role
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: DataZoneAccess
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - glue:GetTable
-                  - glue:GetTables
-                  - glue:GetDatabase
-                  - glue:GetDatabases
-                  - glue:GetPartitions
-                Resource: "*"
+      FunctionName: !Sub 'lounge-access-mcp-${Environment}'
+      Runtime: python3.11
+      Handler: lambda_handler.lambda_handler
+      Code:
+        ZipFile: |
+          # Placeholder code - will be updated by deployment
+          def lambda_handler(event, context):
+              return {'statusCode': 200, 'body': 'Function created'}
+      Role: 
+        Fn::ImportValue: !Sub '${DynamoDBStackName}-LambdaRole'
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME:
+            Fn::ImportValue: !Sub '${DynamoDBStackName}-UserProfileTable'
+          ENVIRONMENT: !Ref Environment
+          AWS_DEFAULT_REGION: !Ref AWS::Region
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: LoungeAccessAdvisor
+        - Key: Component
+          Value: MCPTools
+
+  # Lambda Function Version
+  LambdaFunctionVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref LoungeAccessLambdaFunction
+
+  # Lambda Function Alias
+  LambdaFunctionAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref LoungeAccessLambdaFunction
+      FunctionVersion: !GetAtt LambdaFunctionVersion.Version
+      Name: !Ref Environment
 
 Outputs:
-  LambdaRoleArn:
-    Description: ARN of the Lambda execution role
-    Value: !GetAtt AtpcoLoungeAccessLambdaRole.Arn
+  LambdaFunctionArn:
+    Description: ARN of the Lambda function
+    Value: !GetAtt LoungeAccessLambdaFunction.Arn
     Export:
-      Name: !Sub "${AWS::StackName}-LambdaRoleArn"
+      Name: !Sub "${AWS::StackName}-LambdaFunctionArn"
+  
+  LambdaFunctionName:
+    Description: Name of the Lambda function
+    Value: !Ref LoungeAccessLambdaFunction
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaFunctionName"
+
+  LambdaAliasArn:
+    Description: ARN of the Lambda function alias
+    Value: !Ref LambdaFunctionAlias
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaAliasArn"
