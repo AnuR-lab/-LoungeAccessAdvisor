@@ -5,6 +5,13 @@ echo "=== After Install Script ==="
 
 cd /home/ec2-user/app
 
+# Remove old venv if it exists (might be broken from previous deployment)
+if [ -d "/home/ec2-user/app/.venv" ]; then
+    echo "Removing old virtual environment..."
+    rm -rf /home/ec2-user/app/.venv
+    echo "✅ Old venv removed"
+fi
+
 # Ensure correct ownership
 chown -R ec2-user:ec2-user /home/ec2-user/app
 
