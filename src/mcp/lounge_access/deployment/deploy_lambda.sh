@@ -1,17 +1,12 @@
 # copy files to the folder
-cp ../api_client .
-cp ../lambda_handler.txt .
+cp ../api_client.py .
+cp ../lambda_handler.py .
 cp ../mcp_handler.py .
 
 # Create a ZIP package
 zip -r atpco-lounge-access-lambda.zip .
 
-# Create the Lambda function
-aws lambda create-function \
+# Update the Lambda function code
+aws lambda update-function-code \
   --function-name atpco-lounge-access-mcp-us-east-1 \
-  --runtime python3.11 \
-  --role  arn:aws:iam::905418267822:role/atpco-mcp-lambda-role \
-  --handler lambda_handler.lambda_handler \
-  --zip-file fileb://atpco-lounge-access-lambda.zip \
-  --timeout 300 \
-  --memory-size 512
+  --zip-file fileb://atpco-lounge-access-lambda.zip

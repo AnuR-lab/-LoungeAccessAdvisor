@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lounge Access Lambda for AWS AgentCore Gateway
+
+Parameters:
+  FunctionName:
+    Type: String
+    Default: atpco-lounge-access-mcp-us-east-1
+    Description: Fixed Lambda function name.
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${FunctionName}-exec-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: FullDynamoDbAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowAllDynamoDb
+                Effect: Allow
+                Action: "dynamodb:*"
+                Resource: "*"
+
+  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${FunctionName}"
+      RetentionInDays: 14
+
+  ToolLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref FunctionName
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.12
+      Handler: lambda_handler.lambda_handler
+      Timeout: 300
+      MemorySize: 512
+
+
+Outputs:
+  FunctionArn:
+    Description: Use this as targetConfiguration.mcp.lambda.lambdaArn.
+    Value: !GetAtt ToolLambda.Arn
+  FunctionName:
+    Description: Lambda function name.
+    Value: !Ref FunctionName
+  ExecutionRoleArn:
+    Description: Lambda execution role ARN.
+    Value: !GetAtt LambdaExecutionRole.Arn

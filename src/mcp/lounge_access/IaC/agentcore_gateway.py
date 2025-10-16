@@ -11,7 +11,7 @@ aws_region = 'us-east-1'
 
 # setup the client
 def get_agentcore_toolkit_client(region_name=aws_region):
-    client = GatewayClient(region_name=aws_region)
+    client = GatewayClient(region_name=region_name)
     client.logger.setLevel(logging.DEBUG)
     return client
 
@@ -34,11 +34,24 @@ if __name__ == "__main__":
     target_payload = get_target_payload("./target_payload.json")
     lambda_target = client.create_mcp_gateway_target(gateway=gateway,
                                                      target_type="lambda",
-                                                     target_payload=target_payload)
+                                                     target_payload=target_payload,
+                                                     name="LoungeAccessMCPServerTarget",
+                                                     credentials=None)
+
+    config = {
+        "gateway_url": gateway["gatewayUrl"],
+        "gateway_id": gateway["gatewayId"],
+        "region": aws_region,
+        "client_info": cognito_response["client_info"]
+    }
+
+    with open("gateway_config.json", "w") as f:
+        json.dump(config, f, indent=2)
 
     print(f"MCP Endpoint: {gateway}")
     print(f"OAuth Credentials:")
     print(f"  Client ID: {cognito_response['client_info']['client_id']}")
     print(f"  Scope: {cognito_response['client_info']['scope']}")
+    print(f"Cognito full response: {cognito_response}")
 
 
