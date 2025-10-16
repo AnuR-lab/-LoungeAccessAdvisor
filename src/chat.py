@@ -3,7 +3,7 @@ Main chat interface with Streamlit, including custom handoff_to_user tool that w
 """
 
 import asyncio
-import json
+import uuid
 
 import streamlit as st
 
@@ -12,8 +12,10 @@ from strands import Agent, tool
 #from mcp_client import McpClient
 from strands.models import BedrockModel
 
+from src.lounge_access_agent_memory import get_agent_memory_tools
 from src.mcp_client import McpClient as LoungeAccesshMcpClient
 from src.system_prompts import SystemPrompts
+
 
 def get_agent(mcp_client):
     mcp_tools = mcp_client.list_tools_sync() if mcp_client else []
@@ -23,8 +25,9 @@ def get_agent(mcp_client):
         region_name="us-east-1",
     )
 
+    memory_tools = get_agent_memory_tools()
     agent = Agent(
-        tools=[handoff_to_user, mcp_tools],
+        tools=memory_tools + [handoff_to_user, mcp_tools],
         model=agent_model,
         system_prompt= SystemPrompts.workflow_orchestrator()
     )
