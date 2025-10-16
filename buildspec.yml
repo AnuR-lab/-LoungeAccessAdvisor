@@ -3,8 +3,27 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      python: 3.12
+      python: 3.11  # Use 3.11 as base, then we'll install 3.12 manually
     commands:
+      # Install SSL dependencies first
+      - echo "Installing dependencies..."
+      - yum update -y
+      - yum install -y openssl-devel libffi-devel bzip2-devel gcc make
+      
+      # Install Python 3.12 from source with proper SSL support
+      - echo "Installing Python 3.12 with SSL support..."
+      - cd /tmp
+      - curl -O https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz
+      - tar -xzf Python-3.12.0.tgz
+      - cd Python-3.12.0
+      - ./configure --enable-optimizations --with-openssl=/usr
+      - make -j$(nproc)
+      - make altinstall
+      - ln -sf /usr/local/bin/python3.12 /usr/local/bin/python
+      - ln -sf /usr/local/bin/pip3.12 /usr/local/bin/pip
+      - python --version
+      
+      # Install UV package manager
       - echo "Installing UV package manager..."
       - curl -LsSf https://astral.sh/uv/install.sh | sh
       - export PATH="$HOME/.local/bin:$PATH"
