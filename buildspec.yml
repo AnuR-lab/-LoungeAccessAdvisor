@@ -3,32 +3,19 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      python: 3.11  # Use 3.11 as base, then we'll install 3.12 manually
+      python: 3.12
     commands:
-      # Install SSL dependencies first
-      - echo "Installing dependencies..."
-      - yum update -y
-      - yum install -y openssl-devel libffi-devel bzip2-devel gcc make
+      # Fix SSL for Python 3.12
+      - yum install -y openssl-devel
+      - pip install --force-reinstall pyOpenSSL
       
-      # Install Python 3.12 from source with proper SSL support
-      - echo "Installing Python 3.12 with SSL support..."
-      - cd /tmp
-      - curl -O https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz
-      - tar -xzf Python-3.12.0.tgz
-      - cd Python-3.12.0
-      - ./configure --enable-optimizations --with-openssl=/usr
-      - make -j$(nproc)
-      - make altinstall
-      - ln -sf /usr/local/bin/python3.12 /usr/local/bin/python
-      - ln -sf /usr/local/bin/pip3.12 /usr/local/bin/pip
-      - python --version
-      
-      # Install UV package manager
+      # Continue with your original commands
       - echo "Installing UV package manager..."
       - curl -LsSf https://astral.sh/uv/install.sh | sh
       - export PATH="$HOME/.local/bin:$PATH"
       - uv --version
       
+  # Rest of your buildspec remains unchanged
   pre_build:
     commands:
       - echo "Pre-build phase started on $(date)"
