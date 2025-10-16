@@ -3,13 +3,27 @@ import os
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-from mcp_handler import (
-    get_user, 
-    get_lounges_with_access_rules,
-    get_flight_aware_lounge_recommendations,
-    analyze_layover_lounge_strategy
-)
-from api_client import LoungeAccessClient
+# Import modules without relative imports for Lambda compatibility
+try:
+    from mcp_handler import (
+        get_user, 
+        get_lounges_with_access_rules,
+        get_flight_aware_lounge_recommendations,
+        analyze_layover_lounge_strategy
+    )
+except ImportError:
+    # Fallback imports for Lambda environment
+    import mcp_handler
+    get_user = mcp_handler.get_user
+    get_lounges_with_access_rules = mcp_handler.get_lounges_with_access_rules
+    get_flight_aware_lounge_recommendations = mcp_handler.get_flight_aware_lounge_recommendations
+    analyze_layover_lounge_strategy = mcp_handler.analyze_layover_lounge_strategy
+
+try:
+    from api_client import LoungeAccessClient
+except ImportError:
+    import api_client
+    LoungeAccessClient = api_client.LoungeAccessClient
 
 
 class DateTimeEncoder(json.JSONEncoder):

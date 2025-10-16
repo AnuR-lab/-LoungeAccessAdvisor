@@ -4,7 +4,13 @@ Enhanced with flight information for context-aware lounge recommendations.
 """
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
-from .flight_service import FlightService
+
+# Import FlightService with Lambda compatibility
+try:
+    from flight_service import FlightService
+except ImportError:
+    import flight_service
+    FlightService = flight_service.FlightService
 
 def get_user(user_id, api_client):
     """
