@@ -3,7 +3,11 @@
   "description": "Get intelligent lounge recommendations based on specific flight information, including real-time flight status, terminal locations, and optimal timing for lounge visits.",
   "inputSchema": {
     "type": "object",
-    "required": ["flight_number", "departure_date", "user_id"],
+    "required": [
+      "flight_number",
+      "departure_date",
+      "user_id"
+    ],
     "properties": {
       "flight_number": {
         "type": "string",
@@ -26,7 +30,7 @@
             "description": "Prefer quiet zones for work or rest"
           },
           "food": {
-            "type": "boolean", 
+            "type": "boolean",
             "description": "Prefer lounges with good food service"
           },
           "showers": {
