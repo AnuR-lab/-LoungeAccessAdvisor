@@ -25,7 +25,7 @@ Parameters:
   ExistingEC2InstanceId:
     Type: String
     Description: Existing EC2 Instance ID to deploy to
-    Default: i-0b57c193261903d8a
+    Default: i-01377cb0be65897d1
 
 Resources:
   # ========================================
@@ -285,23 +285,6 @@ Resources:
                 DeploymentGroupName: !Ref CodeDeploymentGroup
               InputArtifacts:
                 - Name: BuildOutput
-
-  # ========================================
-  # GitHub Webhook
-  # ========================================
-  PipelineWebhook:
-    Type: AWS::CodePipeline::Webhook
-    Properties:
-      Authentication: GITHUB_HMAC
-      AuthenticationConfiguration:
-        SecretToken: !Ref GitHubToken
-      Filters:
-        - JsonPath: $.ref
-          MatchEquals: refs/heads/{Branch}
-      TargetPipeline: !Ref Pipeline
-      TargetAction: SourceAction
-      TargetPipelineVersion: !GetAtt Pipeline.Version
-      RegisterWithThirdParty: true
 
 Outputs:
   PipelineName:

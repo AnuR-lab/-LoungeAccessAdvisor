@@ -5,17 +5,11 @@ phases:
     runtime-versions:
       python: 3.12
     commands:
-      # Fix SSL for Python 3.12
-      - yum install -y openssl-devel
-      - pip install --force-reinstall pyOpenSSL
-      
-      # Continue with your original commands
       - echo "Installing UV package manager..."
       - curl -LsSf https://astral.sh/uv/install.sh | sh
       - export PATH="$HOME/.local/bin:$PATH"
       - uv --version
       
-  # Rest of your buildspec remains unchanged
   pre_build:
     commands:
       - echo "Pre-build phase started on $(date)"
