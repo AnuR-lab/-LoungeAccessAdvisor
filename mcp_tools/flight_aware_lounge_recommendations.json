@@ -1,0 +1,48 @@
+{
+  "name": "getFlightAwareLoungeRecommendations",
+  "description": "Get intelligent lounge recommendations based on specific flight information, including real-time flight status, terminal locations, and optimal timing for lounge visits.",
+  "inputSchema": {
+    "type": "object",
+    "required": ["flight_number", "departure_date", "user_id"],
+    "properties": {
+      "flight_number": {
+        "type": "string",
+        "description": "Flight number in format like 'AA123', 'DL456', etc."
+      },
+      "departure_date": {
+        "type": "string",
+        "description": "Departure date in YYYY-MM-DD format (local to departure airport)"
+      },
+      "user_id": {
+        "type": "string",
+        "description": "User ID to retrieve membership and access information"
+      },
+      "preferences": {
+        "type": "object",
+        "description": "Optional user preferences for lounge selection",
+        "properties": {
+          "quiet": {
+            "type": "boolean",
+            "description": "Prefer quiet zones for work or rest"
+          },
+          "food": {
+            "type": "boolean", 
+            "description": "Prefer lounges with good food service"
+          },
+          "showers": {
+            "type": "boolean",
+            "description": "Need shower facilities"
+          },
+          "wifi": {
+            "type": "boolean",
+            "description": "Need reliable WiFi for work"
+          }
+        }
+      },
+      "operational_suffix": {
+        "type": "string",
+        "description": "Optional flight suffix like 'A' or 'B' for flight variants"
+      }
+    }
+  }
+}
