@@ -50,8 +50,4 @@ def show_login_page():
         
         # Demo credentials info
         st.markdown("---")
-        st.info("""
-        **Demo Credentials:**
-        - Username: `admin` / Password: `admin123`
-        - Username: `demo` / Password: `demo123`
-        """)
+       

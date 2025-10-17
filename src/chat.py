@@ -237,7 +237,7 @@ def start_chat_session():
 
 
     # ----- NORMAL CHAT INPUT -----
-    if prompt := st.chat_input("Ask me anything…"):
+    if prompt := st.chat_input("Type your message here…"):
         append_user(prompt)
         asyncio.run(run_stream_async(prompt))
 
