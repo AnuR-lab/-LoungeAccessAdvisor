@@ -29,7 +29,9 @@ class McpClient:
         if self.mcp_gateway_config:
             self.mcp_url = self.mcp_gateway_config.get("gateway_url", None)
             self.client_id = self.mcp_gateway_config["client_info"]["client_id"]
-            self.client_secret = self.mcp_gateway_config["client_info"]["client_secret"]
+            # Prefer secret from environment; fall back to config if present (for backward compatibility)
+            self.client_secret = os.getenv("MCP_CLIENT_SECRET") or \
+                                 self.mcp_gateway_config["client_info"].get("client_secret")
             self.token_url = self.mcp_gateway_config["client_info"]["token_endpoint"]
 
         self.access_token = None
@@ -60,6 +62,8 @@ class McpClient:
         Returns:
             str: The access token
         """
+        if not self.client_secret or str(self.client_secret).startswith("${"):
+            raise RuntimeError("MCP_CLIENT_SECRET environment variable is not set. Please export MCP_CLIENT_SECRET before running.")
         response = requests.post(
             self.token_url,
             data="grant_type=client_credentials&client_id={client_id}&client_secret={client_secret}".format(

@@ -1,8 +1,13 @@
 #!/bin/bash
 
+if [[ -z "${CLIENT_ID}" || -z "${CLIENT_SECRET}" ]]; then
+  echo "Usage: export CLIENT_ID=... CLIENT_SECRET=...; $0" >&2
+  exit 1
+fi
+
 curl --http1.1 -X POST https://agentcore-d806c888.auth.us-east-1.amazoncognito.com/oauth2/token \
      -H "Content-Type: application/x-www-form-urlencoded"  \
-     -d "grant_type=client_credentials&client_id=35ik1sng2lufmvp5iq65d2e0kt&client_secret=1gkp1hjprck6s96r9p36qs4di2b9la2na0rgerk8bbmj55e4g3h9"
+     -d "grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}"
 
 
 

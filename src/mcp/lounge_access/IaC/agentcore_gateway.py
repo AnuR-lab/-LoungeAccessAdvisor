@@ -38,11 +38,17 @@ if __name__ == "__main__":
                                                      name="LoungeAccessMCPServerTarget",
                                                      credentials=None)
 
+    # Do not persist client_secret to disk; replace with env-placeholder
+    client_info_sanitized = dict(cognito_response["client_info"]) if "client_info" in cognito_response else {}
+    if "client_secret" in client_info_sanitized:
+        print(f"mcp client secret: {client_info_sanitized["client_secret"]}")
+        client_info_sanitized["client_secret"] = "${MCP_CLIENT_SECRET}"
+
     config = {
         "gateway_url": gateway["gatewayUrl"],
         "gateway_id": gateway["gatewayId"],
         "region": aws_region,
-        "client_info": cognito_response["client_info"]
+        "client_info": client_info_sanitized
     }
 
     with open("gateway_config.json", "w") as f:
