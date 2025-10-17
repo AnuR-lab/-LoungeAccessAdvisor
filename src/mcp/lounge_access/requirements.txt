@@ -1,18 +1,1 @@
-# Lambda function requirements for LoungeAccessAdvisor
-# Enhanced with flight-aware capabilities
-
-# AWS SDK
-boto3>=1.40.52
-botocore>=1.40.52
-
-# HTTP requests for Amadeus API
-requests>=2.32.5
-
-# JSON handling and data validation
-pydantic>=2.10.5
-
-# Date/time handling
-python-dateutil>=2.8.2
-
-# Typing extensions for better type hints
-typing-extensions>=4.12.2
+requests==2.31.0

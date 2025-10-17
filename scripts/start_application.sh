@@ -1,13 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Starting Streamlit application..."
-
-# Set PATH for UV
-export PATH="/root/.cargo/bin:$PATH"
-
-# Reload systemd
-systemctl daemon-reload
+echo "=== Starting Streamlit Application ==="
 
 # Enable and start the service
 systemctl enable streamlit
@@ -26,4 +20,11 @@ else
     exit 1
 fi
 
-echo "start_application completed successfully"
+# Test if application is responding
+if curl -f http://localhost:8501 > /dev/null 2>&1; then
+    echo "✅ Application is responding on port 8501"
+else
+    echo "⚠️  Application may still be starting up..."
+fi
+
+echo "=== Start Application Complete ==="
