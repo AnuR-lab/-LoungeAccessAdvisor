@@ -13,7 +13,7 @@ def show_home_page():
     # Sidebar
     with st.sidebar:
         st.title("✈️ Lounge Access Advisor")
-        st.markdown(f"**Logged in as:** {st.session_state.username}")
+        st.success(f"👤 Logged in as: **{st.session_state.username}**")
         st.markdown("---")
         
         # Logout button
@@ -29,7 +29,8 @@ def show_home_page():
         This AI chatbot helps you:
         - Find lounge access information
         - Check eligibility
-        - Get travel recommendations
+        - Get personalized recommendations
+        - Answer travel-related queries
         """)
         
         # Clear chat button
@@ -39,16 +40,17 @@ def show_home_page():
     
     # Main chat interface
     st.title("🤖 Lounge Access Advisor Chatbot")
-    st.markdown("Ask me anything about lounge access, credit cards, or travel tips!")
+    st.markdown("Ask me anything about lounge access, flight schedule, or travel tips!")
     
     # Initialize chat history
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    if "chat_messages" not in st.session_state:
+        st.session_state.chat_messages = []
         # Add welcome message
-        st.session_state.messages.append({
+        st.session_state.chat_messages.append({
             "role": "assistant",
             "content": f"Hello {st.session_state.username}! 👋 I'm your Lounge Access Advisor. How can I help you today?"
         })
+
 
     start_chat_session()
 
