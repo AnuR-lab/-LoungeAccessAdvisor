@@ -7,15 +7,36 @@
         "description": "Search for lounges for a specific airport",
         "inputSchema": {
           "type": "object",
-          "required": [
-            "airport"
-          ],
           "properties": {
             "airport": {
               "type": "string",
-              "description": "Three-letter IATA airport code for departure (e.g., IAD)"
+              "description": "3-letter airport code (e.g., JFK, LAX)"
+            },
+            "username": {
+              "type": "string",
+              "description": "Username for personalization"
             }
-          }
+          },
+          "required": [
+            "airport",
+            "username"
+          ]
+        }
+      },
+      {
+        "name": "get_user",
+        "description": "Get user profile",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "username": {
+              "type": "string",
+              "description": "Username to get profile for"
+            }
+          },
+          "required": [
+            "username"
+          ]
         }
       }
     ]

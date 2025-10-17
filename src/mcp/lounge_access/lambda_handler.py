@@ -36,11 +36,12 @@ def lambda_handler(event, context):
     match tool:
         case "search_lounges":
             airport = payload.get("airport", None)
+            username = payload.get("username", "guest")
             if not airport:
                 return {"statusCode": 400,
                         "body": json.dumps({"error": "Missing required parameter: airport"})}
             try:
-                result = get_lounges_with_access_rules(airport,lounge_access_client)
+                result = get_lounges_with_access_rules(airport, lounge_access_client, username=username)
                 return {
                     "statusCode": 200,
                     "body": json.dumps({"result": result}, cls=DateTimeEncoder)
@@ -49,7 +50,7 @@ def lambda_handler(event, context):
                 return {"statusCode": 500,
                         "body": json.dumps({"error": str(e)})}
         case "get_user":
-            user_id = payload.get("user_id", None)
+            user_id = payload.get("username", None)
             if not user_id:
                 return {"statusCode": 400, "body": json.dumps({"error": "Missing required parameter: user_id"})}
             try:

@@ -198,14 +198,42 @@ async def run_stream_async(prompt: str):
         st.session_state.handoff_triggered_this_run = False
         st.rerun()
 
-
 def start_chat_session():
     init_state()
-
-    # ----- Render transcript first -----
+   
+    # Simple quick actions
+    st.markdown("### Quick Actions")
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if st.button("🏨 JFK Lounges"):
+            append_user("What lounges are at JFK?")
+            asyncio.run(run_stream_async("What lounges are at JFK?"))
+    
+    with col2:
+        if st.button("✈️ LAX Lounges"):
+            append_user("Show me lounges at LAX")
+            asyncio.run(run_stream_async("Show me lounges at LAX"))
+            
+    with col3:
+        if st.button("👤 My Profile"):
+            append_user("Show me my profile")
+            asyncio.run(run_stream_async("Show me my profile"))
+   # Add this to your quick actions section temporarily
+    with col4:  # Add a 4th column
+        if st.button("🔍 Debug Profile"):
+            # Show what should happen
+            username = st.session_state.get("username", "guest")
+            st.write(f"Current username: {username}")
+            st.write(f"Should call: get_user(user_id='{username}')")
+            
+            # Test the actual call
+            append_user(f"Debug: Call get_user tool for {username}")
+            asyncio.run(run_stream_async(f"Debug: Call get_user tool for {username}"))
+    st.markdown("---")
     render_transcript()
-
-
+    
+   
     # ----- HANDOFF GATE (must be before chat_input) -----
     if st.session_state.pending_handoff:
         # Show the agent’s request and a form for the human to answer
@@ -237,7 +265,7 @@ def start_chat_session():
 
 
     # ----- NORMAL CHAT INPUT -----
-    if prompt := st.chat_input("Ask me anything…"):
+    if prompt := st.chat_input("Type your message…"):
         append_user(prompt)
         asyncio.run(run_stream_async(prompt))
 
