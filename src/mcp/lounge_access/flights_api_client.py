@@ -8,6 +8,11 @@ import boto3
 import requests
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
+import logging
+
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(level=getattr(logging, LOG_LEVEL, logging.INFO))
+logger = logging.getLogger("flights_api_client")
 
 
 class FlightsApiClient:
@@ -26,6 +31,7 @@ class FlightsApiClient:
         if self._secrets_cache['amadeus_credentials'] and self._secrets_cache['fetched_at']:
             elapsed = datetime.now() - self._secrets_cache['fetched_at']
             if elapsed.total_seconds() < 3600:
+                logger.debug("Using cached Amadeus credentials (age=%ss)", int(elapsed.total_seconds()))
                 return self._secrets_cache['amadeus_credentials']
         
         # Fetch from Secrets Manager
@@ -35,15 +41,16 @@ class FlightsApiClient:
         client = boto3.client('secretsmanager', region_name=region_name)
         
         try:
+            start = datetime.now()
             response = client.get_secret_value(SecretId=secret_name)
+            duration_ms = int((datetime.now() - start).total_seconds() * 1000)
             secret = json.loads(response['SecretString'])
-            
-            # Cache the credentials
+            logger.debug("Fetched Amadeus credentials from Secrets Manager in %dms", duration_ms)
             self._secrets_cache['amadeus_credentials'] = secret
             self._secrets_cache['fetched_at'] = datetime.now()
-            
             return secret
         except Exception as e:
+            logger.error("Error fetching Amadeus credentials: %s", e, exc_info=LOG_LEVEL=="DEBUG")
             raise RuntimeError(f"Failed to fetch Amadeus credentials from Secrets Manager: {str(e)}")
     
     def _get_amadeus_token(self) -> str:
@@ -54,6 +61,8 @@ class FlightsApiClient:
         
         # Return cached token if still valid
         if self._token_cache['access_token'] and self._token_cache['expiry'] and now < self._token_cache['expiry']:
+            remaining = int((self._token_cache['expiry'] - now).total_seconds())
+            logger.debug("Using cached Amadeus token (remaining=%ss)", remaining)
             return self._token_cache['access_token']
         
         # Get credentials from Secrets Manager
@@ -67,15 +76,14 @@ class FlightsApiClient:
             "client_id": credentials['client_id'],
             "client_secret": credentials['client_secret']
         }
-        
+        logger.debug("Requesting new Amadeus token: POST %s", url)
         response = requests.post(url, headers=headers, data=data)
+        logger.debug("Token response status: %s", response.status_code)
         response.raise_for_status()
-        
         token_data = response.json()
         self._token_cache['access_token'] = token_data['access_token']
-        # Amadeus tokens expire in 1799 seconds, cache for 25 minutes to be safe
         self._token_cache['expiry'] = now + timedelta(seconds=1500)
-        
+        logger.debug("Obtained new Amadeus token; cached until %s", self._token_cache['expiry'])
         return self._token_cache['access_token']
     
     def get_flight_schedule(
@@ -98,7 +106,7 @@ class FlightsApiClient:
             dict: Flight schedule information or error details
         """
         try:
-            # Get access token
+            logger.debug("Starting get_flight_schedule carrier=%s flight=%s date=%s suffix=%s", carrier_code, flight_number, scheduled_departure_date, operational_suffix)
             token = self._get_amadeus_token()
             
             # Prepare the API call
@@ -120,34 +128,74 @@ class FlightsApiClient:
             
             # Make the API call
             response = requests.get(url, headers=headers, params=params)
+            logger.debug("Schedule API response status: %s", response.status_code)
             response.raise_for_status()
-            
             flight_data = response.json()
-            
-            # Extract relevant information
             if "data" in flight_data and flight_data["data"]:
-                flight_info = flight_data["data"][0]  # Take first result
-                
-                # Extract key information
+                flight_info = flight_data["data"][0]
+                flight_points = flight_info.get("flightPoints", [])
+                segments = flight_info.get("segments", [])
+                legs = flight_info.get("legs", [])
+                departure_airport = None
+                arrival_airport = None
+                if flight_points:
+                    if len(flight_points) >= 1 and "iataCode" in flight_points[0]:
+                        departure_airport = flight_points[0]["iataCode"]
+                    if len(flight_points) >= 2 and "iataCode" in flight_points[-1]:
+                        arrival_airport = flight_points[-1]["iataCode"]
+                departure_timings = []
+                arrival_timings = []
+                if flight_points:
+                    for idx, fp in enumerate(flight_points):
+                        if idx == 0 and fp.get("departure", {}).get("timings"):
+                            departure_timings = fp["departure"]["timings"]
+                        if idx == len(flight_points) - 1 and fp.get("arrival", {}).get("timings"):
+                            arrival_timings = fp["arrival"]["timings"]
+                aircraft_type = None
+                if legs:
+                    ae = legs[0].get("aircraftEquipment", {})
+                    aircraft_type = ae.get("aircraftType")
+                operating_carrier = None
+                if segments:
+                    partnership = segments[0].get("partnership", {})
+                    operating_flight = partnership.get("operatingFlight", {})
+                    if operating_flight:
+                        operating_carrier = {
+                            "carrierCode": operating_flight.get("carrierCode"),
+                            "flightNumber": operating_flight.get("flightNumber")
+                        }
                 result = {
-                    "carrier_code": carrier_code.upper(),
-                    "flight_number": flight_number,
-                    "scheduled_departure_date": scheduled_departure_date,
-                    "operational_suffix": operational_suffix,
+                    "status": "success",
+                    "meta": {
+                        "count": flight_data.get("meta", {}).get("count"),
+                        "links": flight_data.get("meta", {}).get("links", {})
+                    },
+                    "requested": {
+                        "carrier_code": carrier_code.upper(),
+                        "flight_number": flight_number,
+                        "scheduled_departure_date": scheduled_departure_date,
+                        "operational_suffix": operational_suffix
+                    },
                     "flight_designator": flight_info.get("flightDesignator", {}),
-                    "departure": flight_info.get("departure", {}),
-                    "arrival": flight_info.get("arrival", {}),
-                    "aircraft": flight_info.get("aircraft", {}),
-                    "operating_carrier": flight_info.get("operatingCarrier", {}),
-                    "status": "success"
+                    "departure_airport": departure_airport,
+                    "arrival_airport": arrival_airport,
+                    "departure_timings": departure_timings,
+                    "arrival_timings": arrival_timings,
+                    "segments": segments,
+                    "legs": legs,
+                    "aircraft_type": aircraft_type,
+                    "operating_carrier": operating_carrier,
+                    "raw": flight_info
                 }
-                
-                # Add departure and arrival airport codes if available
-                if "departure" in flight_info and "iataCode" in flight_info["departure"]:
-                    result["departure_airport"] = flight_info["departure"]["iataCode"]
-                if "arrival" in flight_info and "iataCode" in flight_info["arrival"]:
-                    result["arrival_airport"] = flight_info["arrival"]["iataCode"]
-                
+                logger.debug(
+                    "Flight schedule mapped: carrier=%s flight=%s dep=%s arr=%s STD=%s STA=%s",
+                    carrier_code.upper(),
+                    flight_number,
+                    departure_airport,
+                    arrival_airport,
+                    departure_timings[0]["value"] if departure_timings else None,
+                    arrival_timings[0]["value"] if arrival_timings else None
+                )
                 return result
             else:
                 return {
@@ -159,6 +207,8 @@ class FlightsApiClient:
                 }
                 
         except requests.exceptions.HTTPError as e:
+            status_code = e.response.status_code if e.response is not None else "unknown"
+            logger.warning("HTTP error from schedule API status=%s carrier=%s flight=%s date=%s", status_code, carrier_code, flight_number, scheduled_departure_date)
             if e.response.status_code == 400:
                 return {
                     "carrier_code": carrier_code.upper(),
@@ -169,6 +219,9 @@ class FlightsApiClient:
                     "details": str(e)
                 }
             elif e.response.status_code == 401:
+                # Invalidate token cache for next call
+                self._token_cache['access_token'] = None
+                self._token_cache['expiry'] = None
                 return {
                     "carrier_code": carrier_code.upper(),
                     "flight_number": flight_number,
@@ -187,6 +240,7 @@ class FlightsApiClient:
                     "details": str(e)
                 }
         except Exception as e:
+            logger.error("Unexpected error in get_flight_schedule: %s", e, exc_info=LOG_LEVEL=="DEBUG")
             return {
                 "carrier_code": carrier_code.upper(),
                 "flight_number": flight_number,
