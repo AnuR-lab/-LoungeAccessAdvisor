@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 
-from mcp_handler import tool_example_1, tool_example_2, get_user, get_lounges_with_access_rules
+from mcp_handler import get_user, get_lounges_with_access_rules
 from api_client import LoungeAccessClient
 
 
