@@ -39,6 +39,8 @@ def show_login_page():
                 if username and password:
                     # Verify credentials
                     if verify_credentials(username, password):
+                         # Simple clear and set
+                        st.session_state.clear()
                         st.session_state.authenticated = True
                         st.session_state.username = username
                         st.success("✅ Login successful!")
