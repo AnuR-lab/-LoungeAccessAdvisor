@@ -4,6 +4,7 @@ import boto3
 from botocore.exceptions import ClientError
 from user_profile_service import UserProfileService
 from lounge_service import LoungeService
+from flights_api_client import FlightsApiClient
 
 
 class LoungeAccessClient:
@@ -11,6 +12,7 @@ class LoungeAccessClient:
         self.api_client = self._get_client()
         self.user_profile_service = UserProfileService()
         self.lounge_service = LoungeService()
+        self.flights_api_client = FlightsApiClient()
 
     def _get_client(self):
         api_client = None
@@ -133,3 +135,41 @@ class LoungeAccessClient:
                 matching_lounges.append(lounge)
         
         return matching_lounges
+    
+    def get_flight_schedule(self, carrier_code: str, flight_number: str, scheduled_departure_date: str, operational_suffix: str = None):
+        """
+        Get flight schedule information using Amadeus API
+        
+        Args:
+            carrier_code (str): IATA carrier code (e.g., 'AA', 'DL', 'UA')
+            flight_number (str): Flight number (e.g., '1234')
+            scheduled_departure_date (str): Departure date in YYYY-MM-DD format (local to departure airport)
+            operational_suffix (str, optional): Operational suffix like 'A' or 'B'
+        
+        Returns:
+            dict: Flight schedule information or error details
+        """
+        return self.flights_api_client.get_flight_schedule(
+            carrier_code=carrier_code,
+            flight_number=flight_number,
+            scheduled_departure_date=scheduled_departure_date,
+            operational_suffix=operational_suffix
+        )
+    
+    def validate_flight_parameters(self, carrier_code: str, flight_number: str, scheduled_departure_date: str):
+        """
+        Validate flight schedule parameters
+        
+        Args:
+            carrier_code (str): IATA carrier code
+            flight_number (str): Flight number
+            scheduled_departure_date (str): Departure date in YYYY-MM-DD format
+        
+        Returns:
+            dict: Validation result with is_valid boolean and error messages if any
+        """
+        return self.flights_api_client.validate_flight_parameters(
+            carrier_code=carrier_code,
+            flight_number=flight_number,
+            scheduled_departure_date=scheduled_departure_date
+        )
