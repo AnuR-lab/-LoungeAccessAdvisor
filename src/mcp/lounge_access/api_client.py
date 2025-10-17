@@ -24,7 +24,7 @@ class LoungeAccessClient:
             user_id (str): The unique identifier for the user
             
         Returns:
-            dict: User information containing user_id, name, home_airport, and memberships
+            dict: User information containing user_id, name, home_airport, and memberships/preferences
                  Returns None if user not found or error occurs
         """
         return self.user_profile_service.get_user(user_id)

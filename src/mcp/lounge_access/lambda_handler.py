@@ -41,7 +41,7 @@ def lambda_handler(event, context):
                 return {"statusCode": 400,
                         "body": json.dumps({"error": "Missing required parameter: airport"})}
             try:
-                result = get_lounges_with_access_rules(airport, lounge_access_client, username=username)
+                result = get_lounges_with_access_rules(airport, lounge_access_client)
                 return {
                     "statusCode": 200,
                     "body": json.dumps({"result": result}, cls=DateTimeEncoder)

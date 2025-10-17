@@ -32,9 +32,8 @@ class UserProfileService:
         
         Args:
             user_id (str): The unique identifier for the user
-            
         Returns:
-            dict: User information containing user_id, name, home_airport, and memberships
+            dict: User information containing user_id, name, home_airport, and memberships/preferences
                  Returns None if user not found or error occurs
         """
         try:
@@ -48,14 +47,9 @@ class UserProfileService:
             # Check if item was found
             if 'Item' in response:
                 user_item = response['Item']
-                
-                # Return user data in the expected format
-                return {
-                    "user_id": user_item.get('user_id'),
-                    "name": user_item.get('name'),
-                    "home_airport": user_item.get('home_airport'),
-                    "memberships": user_item.get('memberships', [])
-                }
+                return user_item
+           
+              
             else:
                 # User not found in DynamoDB
                 return None
@@ -69,51 +63,7 @@ class UserProfileService:
             print(f"Unexpected error retrieving user {user_id}: {str(e)}")
             return None
 
-    def create_sample_users(self):
-        """
-        Creates sample users in the DynamoDB UserProfile table for testing.
-        This method can be used to populate the table with initial data.
-        
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        sample_users = [
-            {
-                "user_id": "LAA_001",
-                "name": "John Doe",
-                "home_airport": "JFK",
-                "memberships": ["priority_pass", "amex_platinum"]
-            },
-            {
-                "user_id": "LAA_002",
-                "name": "Jane Smith",
-                "home_airport": "LAX",
-                "memberships": ["chase_sapphire", "priority_pass"]
-            },
-            {
-                "user_id": "LAA_003",
-                "name": "Mike Johnson",
-                "home_airport": "ORD",
-                "memberships": ["amex_gold", "united_club"]
-            }
-        ]
-        
-        try:
-            # Insert sample users into DynamoDB
-            with self.user_profile_table.batch_writer() as batch:
-                for user in sample_users:
-                    batch.put_item(Item=user)
-            
-            print("Successfully created sample users in UserProfile table")
-            return True
-            
-        except ClientError as e:
-            print(f"Error creating sample users: {e.response['Error']['Message']}")
-            return False
-        except Exception as e:
-            print(f"Unexpected error creating sample users: {str(e)}")
-            return False
-
+    
     def create_user(self, user_data):
         """
         Creates a new user in the DynamoDB UserProfile table.
