@@ -69,3 +69,71 @@ def get_lounges_with_access_rules(airport, api_client):
             "status": "error",
             "error": str(e)
         }
+
+
+def get_flight_schedule(carrier_code, flight_number, scheduled_departure_date, api_client, operational_suffix=None):
+    """
+    Retrieves flight schedule information for a specific flight.
+    
+    Args:
+        carrier_code (str): IATA carrier code (e.g., 'AA', 'DL', 'UA')
+        flight_number (str): Flight number (e.g., '1234')
+        scheduled_departure_date (str): Departure date in YYYY-MM-DD format (local to departure airport)
+        api_client: The API client instance for data retrieval
+        operational_suffix (str, optional): Operational suffix like 'A' or 'B'
+        
+    Returns:
+        dict: Flight schedule information with departure/arrival details and airport codes
+    """
+    try:
+        flight_data = api_client.get_flight_schedule(
+            carrier_code=carrier_code,
+            flight_number=flight_number,
+            scheduled_departure_date=scheduled_departure_date,
+            operational_suffix=operational_suffix
+        )
+        
+        if flight_data and flight_data.get("status") == "success":
+            # Extract airport codes for potential lounge lookup
+            departure_airport = flight_data.get("departure_airport")
+            arrival_airport = flight_data.get("arrival_airport")
+            
+            # Enhance the response with lounge availability hints
+            result = {
+                "flight_info": flight_data,
+                "departure_airport": departure_airport,
+                "arrival_airport": arrival_airport,
+                "status": "success"
+            }
+            
+            # Optionally add lounge availability information
+            if departure_airport:
+                try:
+                    departure_lounges = api_client.get_lounges_by_airport(departure_airport)
+                    result["departure_lounges_available"] = bool(departure_lounges.get("lounges"))
+                except:
+                    result["departure_lounges_available"] = None
+            
+            if arrival_airport:
+                try:
+                    arrival_lounges = api_client.get_lounges_by_airport(arrival_airport)
+                    result["arrival_lounges_available"] = bool(arrival_lounges.get("lounges"))
+                except:
+                    result["arrival_lounges_available"] = None
+            
+            return result
+        
+        return {
+            "flight_info": flight_data,
+            "status": flight_data.get("status", "error"),
+            "message": flight_data.get("message", "No flight data available")
+        }
+        
+    except Exception as e:
+        return {
+            "carrier_code": carrier_code,
+            "flight_number": flight_number,
+            "scheduled_departure_date": scheduled_departure_date,
+            "status": "error",
+            "error": str(e)
+        }
