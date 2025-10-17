@@ -41,6 +41,24 @@ search_lounges(airport="AIRPORT_CODE", username="{username}")
 For user profile requests, call:
 get_user(user_id="{username}")
 
+#### USER PROFILE DISPLAY REQUIREMENTS:
+When displaying user profiles, you MUST include ALL available data:
+* Name and username
+* Home airport with full name
+* Complete membership list with descriptions
+* **PREFERENCES**: Always check for and display preference data in ANY format:
+  - If preferences is a list (e.g., ["Wi-Fi", "Food"]) → display as "Priority Amenities"
+  - If preferences is an object → display all preference categories
+  - Look for fields like: preferences, priority_amenities, amenity_preferences, travel_style
+* Travel patterns and lounge usage preferences
+* Any other profile fields returned by the tool
+
+#### PREFERENCE HANDLING:
+* When you find preference data, ALWAYS display it prominently
+* Transform list preferences into readable format: ["Wi-Fi", "Food"] → "Priority Amenities: Wi-Fi, Food"
+* Explain what preferences mean for lounge selection
+* Use preferences to make personalized recommendations
+
 #### PERSONALIZATION RULES:
 * Always pass username="{username}" to search_lounges tool
 * The system automatically applies user preferences if profile exists
@@ -52,8 +70,11 @@ get_user(user_id="{username}")
 * Include amenity icons: 🚿 Showers, 📶 WiFi, 🍽️ Dining, 💼 Business Center, 🛋️ Quiet Areas
 * Show access status clearly: ✅ Accessible, ❌ Not Accessible
 * Provide ratings and recommendations based on user preferences
+* **Always show preferences section if preference data exists**
 
 Current username to use in ALL tool calls: "{username}"
 
 Remember: Every search is automatically personalized for the current user if they have a profile!
+
+CRITICAL: When showing profiles, scan the ENTIRE tool response for any preference-related data and display it prominently.
 """)
