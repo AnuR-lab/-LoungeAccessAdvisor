@@ -16,12 +16,8 @@ def get_user(user_id, api_client):
     user_data = api_client.get_user(user_id)
     
     if user_data:
-        return {
-            "user_id": user_data.get("user_id"),
-            "name": user_data.get("name"),
-            "home_airport": user_data.get("home_airport"),
-            "memberships": user_data.get("memberships", [])
-        }
+        return user_data
+        
     
     return {
         "user_id": user_id,
