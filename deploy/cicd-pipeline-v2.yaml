@@ -29,10 +29,93 @@ Parameters:
 
 Resources:
   # ========================================
+  # Lambda Execution Role for Bucket Cleanup
+  # ========================================
+  BucketCleanupLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: S3CleanupPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:ListBucket'
+                  - 's3:ListBucketVersions'
+                  - 's3:GetObject'
+                  - 's3:DeleteObject'
+                  - 's3:DeleteObjectVersion'
+                Resource:
+                  - !Sub 'arn:aws:s3:::lounge-advisor-artifacts-${AWS::AccountId}'
+                  - !Sub 'arn:aws:s3:::lounge-advisor-artifacts-${AWS::AccountId}/*'
+
+  # ========================================
+  # Lambda Function to Empty S3 Bucket
+  # ========================================
+  BucketCleanupLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-BucketCleanup'
+      Runtime: python3.12
+      Handler: index.lambda_handler
+      Role: !GetAtt BucketCleanupLambdaRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          
+          s3 = boto3.client('s3')
+          
+          def lambda_handler(event, context):
+              try:
+                  bucket_name = event['ResourceProperties']['BucketName']
+                  
+                  if event['RequestType'] == 'Delete':
+                      # List and delete all versions and objects
+                      paginator = s3.get_paginator('list_object_versions')
+                      pages = paginator.paginate(Bucket=bucket_name)
+                      
+                      for page in pages:
+                          if 'Versions' in page:
+                              for version in page['Versions']:
+                                  s3.delete_object(Bucket=bucket_name, Key=version['Key'], VersionId=version['VersionId'])
+                          if 'DeleteMarkers' in page:
+                              for marker in page['DeleteMarkers']:
+                                  s3.delete_object(Bucket=bucket_name, Key=marker['Key'], VersionId=marker['VersionId'])
+                      
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+                  else:
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+              except Exception as e:
+                  print(f'Error: {e}')
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {})
+
+  # ========================================
+  # Custom Resource to Trigger Cleanup
+  # ========================================
+  BucketCleanupTrigger:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt BucketCleanupLambda.Arn
+      BucketName: !Sub 'lounge-advisor-artifacts-${AWS::AccountId}'
+
+  # ========================================
   # S3 Bucket for Pipeline Artifacts
   # ========================================
   ArtifactBucket:
     Type: AWS::S3::Bucket
+    DependsOn: BucketCleanupTrigger
+    DeletionPolicy: Delete
     Properties:
       BucketName: !Sub 'lounge-advisor-artifacts-${AWS::AccountId}'
       VersioningConfiguration:
@@ -109,6 +192,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
             Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
       Policies:
         - PolicyName: CodeBuildPolicy
           PolicyDocument:

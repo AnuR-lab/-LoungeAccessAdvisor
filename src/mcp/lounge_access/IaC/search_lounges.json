@@ -1,0 +1,36 @@
+{
+  "name": "searchLounges",
+  "description": "Search for lounges for a specific airport",
+  "inputSchema": {
+    "type": "object",
+    "required": ["airport_code"],
+    "properties": {
+      "airport_code": {
+        "type": "string",
+        "description": "Three-letter IATA airport code for departure (e.g., IAD)"
+      },
+      "departure_date": {
+        "type": "string",
+        "description": "Departure date in YYYY-MM-DD format"
+      },
+      "amenities": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["Buffet", "Cocktails", "Wi-Fi", "Showers", "Business Center", "Gym", "Barista Coffee", "TV", "Fast Track"  ]
+        },
+        "description": "List of amenities to filter lounges by",
+        "example": ["Wi-Fi", "Cocktails"]
+      },
+      "providers": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["Amex Platinum", "Priority Pass", "Chase Sapphire Reserve", "United Polaris Business","Delta Medallion"]
+        },
+        "description": "One or more access providers",
+        "example": ["Amex Platinum", "Priority Pass"]
+      }
+    }
+  }
+}

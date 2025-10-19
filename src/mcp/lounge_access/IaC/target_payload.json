@@ -1,0 +1,69 @@
+{
+  "lambdaArn": "arn:aws:lambda:us-east-1:905418267822:function:atpco-lounge-access-mcp-us-east-1",
+  "toolSchema": {
+    "inlinePayload": [
+        {
+          "description": "Search for lounges for a specific airport",
+          "inputSchema": {
+            "properties": {
+              "airport": {
+                "description": "Three-letter IATA airport code for departure (e.g., IAD)",
+                "type": "string"
+              }
+            },
+            "required": [
+              "airport"
+            ],
+            "type": "object"
+          },
+          "name": "search_lounges"
+        },
+        {
+          "description": "Get flight schedule information for a specific flight including departure/arrival times, aircraft details, and gate information",
+          "inputSchema": {
+            "properties": {
+              "carrier_code": {
+                "description": "IATA airline code (e.g., 'AA' for American Airlines, 'DL' for Delta, 'UA' for United)",
+                "type": "string"
+              },
+              "flight_number": {
+                "description": "Flight number without the airline code (e.g., '100', '1234')",
+                "type": "string"
+              },
+              "operational_suffix": {
+                "description": "Optional operational suffix for flights with multiple legs or services (e.g., 'A', 'B')",
+                "type": "string"
+              },
+              "scheduled_departure_date": {
+                "description": "Scheduled departure date in YYYY-MM-DD format (local to the departure airport)",
+                "type": "string"
+              }
+            },
+            "required": [
+              "carrier_code",
+              "flight_number",
+              "scheduled_departure_date"
+            ],
+            "type": "object"
+          },
+          "name": "get_flight_schedule"
+        },
+        {
+          "description": "Get user profile",
+          "inputSchema": {
+            "properties": {
+              "user_id": {
+                "description": "Username to get profile for",
+                "type": "string"
+              }
+            },
+            "required": [
+              "user_id"
+            ],
+            "type": "object"
+          },
+          "name": "get_user"
+        }
+    ]
+  }
+}

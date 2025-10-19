@@ -1,0 +1,35 @@
+{
+  "name": "searchFlightsOptimized",
+  "description": "Search for flights between airports with lounge access optimization, ranking results by lounge availability and access opportunities for the user's memberships.",
+  "inputSchema": {
+    "type": "object", 
+    "required": ["origin", "destination", "departure_date", "user_id"],
+    "properties": {
+      "origin": {
+        "type": "string",
+        "description": "Three-letter IATA airport code for departure (e.g., JFK)"
+      },
+      "destination": {
+        "type": "string", 
+        "description": "Three-letter IATA airport code for arrival (e.g., LAX)"
+      },
+      "departure_date": {
+        "type": "string",
+        "description": "Departure date in YYYY-MM-DD format"
+      },
+      "user_id": {
+        "type": "string",
+        "description": "User ID to check lounge access eligibility"
+      },
+      "return_date": {
+        "type": "string",
+        "description": "Optional return date for round-trip flights in YYYY-MM-DD format"
+      },
+      "optimize_for": {
+        "type": "string",
+        "enum": ["lounge_access", "price", "convenience"],
+        "description": "Optimization priority: lounge_access (maximize lounge opportunities), price (best value), or convenience (shortest travel time)"
+      }
+    }
+  }
+}

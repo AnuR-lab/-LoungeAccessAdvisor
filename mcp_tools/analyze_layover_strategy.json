@@ -1,0 +1,51 @@
+{
+  "name": "analyzeLayoverStrategy", 
+  "description": "Analyze multi-flight itinerary and provide optimal lounge strategy for layovers and connections, including timing recommendations and lounge selection based on connection duration.",
+  "inputSchema": {
+    "type": "object",
+    "required": ["connecting_flights", "user_id"],
+    "properties": {
+      "connecting_flights": {
+        "type": "array",
+        "description": "List of connecting flights in chronological order",
+        "items": {
+          "type": "object",
+          "required": ["flight_number", "departure_date"],
+          "properties": {
+            "flight_number": {
+              "type": "string",
+              "description": "Flight number like 'AA123'"
+            },
+            "departure_date": {
+              "type": "string", 
+              "description": "Departure date in YYYY-MM-DD format"
+            },
+            "operational_suffix": {
+              "type": "string",
+              "description": "Optional flight suffix"
+            }
+          }
+        }
+      },
+      "user_id": {
+        "type": "string",
+        "description": "User ID to retrieve membership information"
+      },
+      "preferences": {
+        "type": "object",
+        "description": "Optional user preferences for layover planning",
+        "properties": {
+          "priority": {
+            "type": "string",
+            "enum": ["speed", "comfort", "amenities"],
+            "description": "Priority for layover strategy: speed (quick connections), comfort (relaxation), or amenities (full experience)"
+          },
+          "mobility_assistance": {
+            "type": "boolean",
+            "description": "Whether user needs mobility assistance for connections"
+          }
+        }
+      }
+    }
+  }
+}

@@ -3,6 +3,8 @@ Main chat interface with Streamlit, including custom handoff_to_user tool that w
 """
 
 import asyncio
+import uuid
+
 import streamlit as st
 
 from strands import Agent, tool
@@ -10,8 +12,44 @@ from strands import Agent, tool
 #from mcp_client import McpClient
 from strands.models import BedrockModel
 
+from src.lounge_access_agent_memory import get_agent_memory_tools
+from src.mcp_client import McpClient as LoungeAccesshMcpClient
 from src.system_prompts import SystemPrompts
 
+
+def get_agent(mcp_client):
+    mcp_tools = mcp_client.list_tools_sync() if mcp_client else []
+
+    agent_model = BedrockModel(
+        model_id="us.anthropic.claude-sonnet-4-20250514-v1:0",
+        region_name="us-east-1",
+    )
+
+    memory_tools = get_agent_memory_tools()
+    agent = Agent(
+        tools=memory_tools + [handoff_to_user, mcp_tools],
+        model=agent_model,
+        system_prompt= SystemPrompts.workflow_orchestrator()
+    )
+
+    return agent
+
+
+def init_state():
+    if "agent" not in st.session_state:
+
+        mcp_client = LoungeAccesshMcpClient().get_mcp_client()
+
+        # Keep a single Agent instance so conversation history persists
+        st.session_state.mcp_context = mcp_client.__enter__() if mcp_client else None
+        st.session_state.agent = get_agent(mcp_client) #Agent(tools=[handoff_to_user])
+
+    if "chat_messages" not in st.session_state:
+        st.session_state.chat_messages = []  # [{"role": "user"|"assistant", "content": "..."}]
+    if "pending_handoff" not in st.session_state:
+        st.session_state.pending_handoff = None  # {"message": str, "breakout": bool}
+    if "handoff_triggered_this_run" not in st.session_state:
+        st.session_state.handoff_triggered_this_run = False
 
 @tool
 def handoff_to_user(message: str, breakout_of_loop: bool = False):
@@ -36,48 +74,6 @@ def handoff_to_user(message: str, breakout_of_loop: bool = False):
     append_user(message)
 
     return f"Handoff initiated: {message}. Waiting for user response..."
-
-
-def get_agent(mcp_client):
-    mcp_tools = mcp_client.list_tools_sync() if mcp_client else []
-
-    agent_model = BedrockModel(
-        model_id="us.anthropic.claude-sonnet-4-20250514-v1:0",  # "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        region_name="us-east-1",
-    )
-
-    agent = Agent(
-        tools=[handoff_to_user, mcp_tools],
-        model=agent_model,
-        system_prompt= SystemPrompts.workflow_orchestrator()
-    )
-
-    return agent
-
-
-def init_state():
-    if "agent" not in st.session_state:
-
-        mcp_client = None
-        # mcp_client = McpClient(
-        #     mcp_gateway_url="https://gateway-quick-start-0e31fb-asclyv6trk.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp",
-        #     client_id="37m4g3smkv8gvmr63142i1fqge",
-        #     client_secret="d623h492ngp5up91c6f07699h8rsi8bvppn3cou7vbfv1edvvpo",
-        #     token_url="https://my-domain-3y2hxkiv.auth.us-east-1.amazoncognito.com/oauth2/token"
-        # ).get_mcp_client()
-
-
-        # Keep a single Agent instance so conversation history persists
-        st.session_state.mcp_context = mcp_client.__enter__() if mcp_client else None
-        st.session_state.agent = get_agent(mcp_client) #Agent(tools=[handoff_to_user])
-
-    if "chat_messages" not in st.session_state:
-        st.session_state.chat_messages = []  # [{"role": "user"|"assistant", "content": "..."}]
-    if "pending_handoff" not in st.session_state:
-        st.session_state.pending_handoff = None  # {"message": str, "breakout": bool}
-    if "handoff_triggered_this_run" not in st.session_state:
-        st.session_state.handoff_triggered_this_run = False
-
 
 # ----- UI Helpers -----
 def render_transcript():
@@ -241,7 +237,7 @@ def start_chat_session():
 
 
     # ----- NORMAL CHAT INPUT -----
-    if prompt := st.chat_input("Ask me anything…"):
+    if prompt := st.chat_input("Type your message here…"):
         append_user(prompt)
         asyncio.run(run_stream_async(prompt))
 

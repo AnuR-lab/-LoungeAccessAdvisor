@@ -13,14 +13,18 @@ def show_home_page():
     # Sidebar
     with st.sidebar:
         st.title("✈️ Lounge Access Advisor")
-        st.markdown(f"**Logged in as:** {st.session_state.username}")
+        st.success(f"👤 Logged in as: **{st.session_state.username}**")
         st.markdown("---")
         
-        # Logout button
+        
+        # Controls
         if st.button("🚪 Logout", use_container_width=True):
+            # Clear all session data
             st.session_state.authenticated = False
             st.session_state.username = None
-            st.session_state.messages = []
+            st.session_state.chat_messages = []
+
+            st.session_state.clear()
             st.rerun()
         
         st.markdown("---")
@@ -29,26 +33,21 @@ def show_home_page():
         This AI chatbot helps you:
         - Find lounge access information
         - Check eligibility
-        - Get travel recommendations
+        - Get personalized recommendations
+        - Answer travel-related queries
         """)
-        
-        # Clear chat button
+
+        st.caption("Your personalized lounge access advisor")
         if st.button("🗑️ Clear Chat", use_container_width=True):
-            st.session_state.messages = []
+            st.session_state.chat_messages = []
             st.rerun()
+        
     
     # Main chat interface
-    st.title("🤖 Lounge Access Advisor Chatbot")
-    st.markdown("Ask me anything about lounge access, credit cards, or travel tips!")
+    st.title("🤖 Lounge Access Advisor")
+    st.markdown(f"Hello {st.session_state.username}! 👋 I'm your personalized Lounge Access Advisor. How can I help you today?")
     
-    # Initialize chat history
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-        # Add welcome message
-        st.session_state.messages.append({
-            "role": "assistant",
-            "content": f"Hello {st.session_state.username}! 👋 I'm your Lounge Access Advisor. How can I help you today?"
-        })
-
+    # Initialize chat
+    if "chat_messages" not in st.session_state:
+        st.session_state.chat_messages = []
     start_chat_session()
-
