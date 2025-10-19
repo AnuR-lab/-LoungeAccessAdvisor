@@ -23,7 +23,7 @@ def show_login_page():
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
-        st.markdown("# ✈️ Auto Rescue Advisor")
+        st.markdown("# ✈️ Lounge Access Advisor")
         st.markdown("### Welcome Back!")
         st.markdown("---")
 
