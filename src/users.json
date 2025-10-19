@@ -1,0 +1,32 @@
+{
+  "users": [
+    {
+      "username": "sgururajappa",
+      "password_hash": "$2b$12$5QGGFRneVxqPT65GBPzEcOEufCbFc7D/c1DORzJuRDhUVKjTgKus6",
+      "roles": [
+        "viewer"
+      ]
+    },
+    {
+      "username": "pporeddy",
+      "password_hash": "$2b$12$gX/XrG37XbDeObzebjHr1O5U9CabcBBzfVXOs2N6lXnXOmPxTMUwi",
+      "roles": [
+        "viewer"
+      ]
+    },
+    {
+      "username": "aragupathy",
+      "password_hash": "$2b$12$IX8BqjH5YjchC3L83epLf.nMjPfdddQiE2V59o.WrZ.VuJ/iN3Gtm",
+      "roles": [
+        "viewer"
+      ]
+    },
+    {
+      "username": "yding",
+      "password_hash": "$2b$12$B6wmlnAocQ.pI.I2iBz3l.dQorZhaVwmRs91UMui4AfEuOF6STQXm",
+      "roles": [
+        "viewer"
+      ]
+    }
+  ]
+}
